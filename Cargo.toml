@@ -1,0 +1,32 @@
+[workspace]
+resolver = "2"
+members = ["lib"]
+
+[package]
+name = "rust-hr"
+authors = ["Etienne"]
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+lib = { path = "./lib" }
+# lib = { path = "./lib", features = ["reload"] }
+hot-lib-reloader = { version = "^0.6", optional = true }
+wgpu = "0.17.0"
+winit = "0.28.6"
+env_logger = "0.10.0"
+pollster = "0.3.0"
+log = "0.4.19"
+notify = "6.0.1"
+naga = "0.13.0"
+rust-embed = "6.8.1"
+
+[features]
+default = []
+reload = ["dep:hot-lib-reloader"]
+
+[profile.dev]
+opt-level = 0
+
+[profile.dev.package."*"]
+opt-level = 1
