@@ -13,13 +13,7 @@ async fn run(
     data: Arc<Mutex<lib::helpers::ReloadFlags>>,
 ) {
     // Create the instance and surface.
-    let backends = wgpu::util::backend_bits_from_env().unwrap_or_else(wgpu::Backends::all);
-    let dx12_shader_compiler = wgpu::util::dx12_shader_compiler_from_env().unwrap_or_default();
-
-    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
-        backends,
-        dx12_shader_compiler,
-    });
+    let instance = wgpu::Instance::default();
     let surface = unsafe { instance.create_surface(&window) }.unwrap();
 
     // Select an adapter and a surface configuration.
@@ -140,6 +134,8 @@ async fn run(
 pub fn start_app(data: Arc<Mutex<library_bridge::ReloadFlags>>) {
     #[cfg(not(target_arch = "wasm32"))]
     {
+        env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
+
         let event_loop = EventLoop::new();
         let mut builder = winit::window::WindowBuilder::new();
         builder = builder.with_title("Demo hot reload");
@@ -149,6 +145,9 @@ pub fn start_app(data: Arc<Mutex<library_bridge::ReloadFlags>>) {
     }
     #[cfg(target_arch = "wasm32")]
     {
+        let event_loop = EventLoop::new();
+        let window = winit::window::Window::new(&event_loop).unwrap();
+
         std::panic::set_hook(Box::new(console_error_panic_hook::hook));
         console_log::init().expect("could not initialize logger");
         use winit::platform::web::WindowExtWebSys;
@@ -161,6 +160,6 @@ pub fn start_app(data: Arc<Mutex<library_bridge::ReloadFlags>>) {
                     .ok()
             })
             .expect("couldn't append canvas to document body");
-        wasm_bindgen_futures::spawn_local(run(event_loop, window));
+        wasm_bindgen_futures::spawn_local(run(event_loop, window, data));
     }
 }

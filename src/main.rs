@@ -6,10 +6,16 @@ use std::sync::{Arc, Mutex};
 #[cfg(feature = "reload")]
 use crate::hot_lib::library_bridge;
 
+#[cfg(not(target_arch = "wasm32"))]
+#[cfg(debug_assertions)]
 use notify::{Config, RecommendedWatcher, RecursiveMode, Watcher};
 
+#[cfg(not(target_arch = "wasm32"))]
+#[cfg(debug_assertions)]
 use std::path::Path;
 
+#[cfg(not(target_arch = "wasm32"))]
+#[cfg(debug_assertions)]
 fn watch<P: AsRef<Path>>(
     path: P,
     data: Arc<Mutex<lib::helpers::ReloadFlags>>,
@@ -47,14 +53,12 @@ fn main() {
         lib: lib::helpers::LibState::Stable,
     }));
 
-    env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
-
-    let path = "shaders";
-
+    #[cfg(not(target_arch = "wasm32"))]
     #[cfg(debug_assertions)]
     {
         // Watch shaders folder.
         // When a shader is saved, the pipeline will be recreated.
+        let path = "shaders";
         log::info!("Watching {path}");
         let data = data.clone();
         std::thread::spawn(move || {

@@ -4,9 +4,16 @@ version = "0.1.0"
 edition = "2021"
 
 [lib]
-crate-type = ["rlib", "dylib"]
+crate-type = ["rlib"]
+# crate-type = ["rlib", "dylib"]
 
 [dependencies]
 naga = "0.13.0"
-rust-embed = "6.8.1"
 wgpu = "0.17.0"
+
+[target.'cfg(not(target_family = "wasm"))'.dependencies]
+rust-embed = "6.8.1" # Enable shader hot reload for native compilation.
+
+[target.'cfg(target_family = "wasm")'.dependencies]
+# Embed shaders in wasm.
+rust-embed = { version = "6.8.1", features = ["debug-embed"] }

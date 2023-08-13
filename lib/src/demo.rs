@@ -74,6 +74,7 @@ impl DemoProgram {
         adapter: &wgpu::Adapter,
     ) -> Result<wgpu::RenderPipeline, ProgramError> {
         let shader = Shader::load("draw.wgsl");
+        #[cfg(not(target_arch = "wasm32"))]
         #[cfg(debug_assertions)]
         {
             // in reload mode, we need to parse the shader to check for errors
@@ -83,7 +84,7 @@ impl DemoProgram {
             let mut frontend = naga::front::wgsl::Frontend::new();
             frontend
                 .parse(shader.as_str())
-                .map_err(ProgramError::ShaderParseError)?;
+                .map_err(|e| ProgramError::ShaderParseError(e.message().into()))?;
         }
 
         let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {

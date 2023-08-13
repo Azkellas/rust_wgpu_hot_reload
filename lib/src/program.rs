@@ -1,6 +1,6 @@
 #[derive(Debug)]
 pub enum ProgramError {
-    ShaderParseError(naga::front::wgsl::ParseError),
+    ShaderParseError(String),
 }
 
 pub trait Program: Sized {
