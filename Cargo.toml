@@ -1,12 +1,17 @@
-[workspace]
-resolver = "2"
-members = ["lib"]
-
 [package]
 name = "wgpu-hot-reload"
 authors = ["Etienne"]
 version = "0.1.0"
 edition = "2021"
+homepage = "https://github.com/Azkellas/rust_wgpu_hot_reload"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/Azkellas/rust_wgpu_hot_reload"
+description = "A template rust project to be productive in wgpu, with hot reload and wasm export"
+keywords = ["wgpu", "hot-reload", "wasm", "template"]
+
+[workspace]
+resolver = "2"
+members = ["lib"]
 
 [dependencies]
 lib = { path = "./lib" }
