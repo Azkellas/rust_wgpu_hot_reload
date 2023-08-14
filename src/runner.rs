@@ -1,6 +1,7 @@
+use egui_wgpu::renderer::{Renderer, ScreenDescriptor};
 use std::sync::{Arc, Mutex};
 use winit::{
-    event::{Event, WindowEvent},
+    event::{Event, VirtualKeyCode, WindowEvent},
     event_loop::{ControlFlow, EventLoop},
     window::Window,
 };
@@ -43,14 +44,18 @@ async fn run(
         .get_default_config(&adapter, size.width, size.height)
         .expect("Surface isn't supported by the adapter.");
 
-    let surface_view_format = config.format.add_srgb_suffix();
-    config.view_formats.push(surface_view_format);
-
     surface.configure(&device, &config);
 
     // Create our program.
     let mut program = library_bridge::create_program(&surface, &device, &adapter)
         .expect("Failed to create program");
+    // Update window title with program name.
+    window.set_title(library_bridge::get_program_name(&program).as_str());
+
+    // Create egui state.
+    let mut egui_state = egui_winit::State::new(&event_loop);
+    let egui_context = egui::Context::default();
+    let mut egui_renderer = Renderer::new(&device, config.format, None, 1);
 
     event_loop.run(move |event, _, control_flow| {
         // Have the closure take ownership of the resources.
@@ -61,25 +66,40 @@ async fn run(
         // Poll all events to ensure a maximum framerate.
         *control_flow = ControlFlow::Poll;
         match event {
-            Event::WindowEvent {
-                event: WindowEvent::Resized(size),
-                ..
-            } => {
-                // Reconfigure the surface with the new size
-                config.width = size.width;
-                config.height = size.height;
-                surface.configure(&device, &config);
-                library_bridge::resize_program(&mut program, &config, &device, &queue);
-                // On macos the window needs to be redrawn manually after resizing
-                window.request_redraw();
+            Event::WindowEvent { event, .. } => {
+                match event {
+                    WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
+                    WindowEvent::KeyboardInput { input, .. }
+                        if input.virtual_keycode == Some(VirtualKeyCode::Escape) =>
+                    {
+                        *control_flow = ControlFlow::Exit
+                    }
+                    WindowEvent::Resized(size) => {
+                        // Resize with 0 width and height is used by winit to signal a minimize event on Windows.
+                        // See: https://github.com/rust-windowing/winit/issues/208
+                        // This solves an issue where the app would panic when minimizing on Windows.
+                        if size.width > 0 && size.height > 0 {
+                            config.width = size.width;
+                            config.height = size.height;
+                            surface.configure(&device, &config);
+                            library_bridge::resize_program(&mut program, &config, &device, &queue);
+                        }
+                    }
+                    WindowEvent::CursorMoved { .. } => {
+                        // ignore event response.
+                        let _ = egui_state.on_event(&egui_context, &event);
+                    }
+                    _ => {
+                        // ignore event response.
+                        let _ = egui_state.on_event(&egui_context, &event);
+                    }
+                }
             }
             Event::RedrawEventsCleared => {
                 window.request_redraw();
             }
-
             Event::RedrawRequested(_) => {
                 let mut data = data.lock().unwrap();
-
                 // Reload shaders if needed
                 if !data.shaders.is_empty() {
                     println!("rebuild shaders {:?}", data.shaders);
@@ -110,22 +130,81 @@ async fn run(
 
                 // Render a frame if the lib is stable.
                 if data.lib == library_bridge::LibState::Stable {
+                    // Get the next frame and view.
                     let frame = surface
                         .get_current_texture()
                         .expect("Failed to acquire next swap chain texture");
                     let view = frame
                         .texture
                         .create_view(&wgpu::TextureViewDescriptor::default());
+
+                    // Create a command encoder.
+                    let mut encoder = device
+                        .create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
+
+                    // Update the program before drawing.
                     library_bridge::update_program(&mut program);
-                    // program.render(&view, &device, &queue);
-                    library_bridge::render_frame(&program, &view, &device, &queue);
+
+                    // Update the ui before drawing.
+                    let input = egui_state.take_egui_input(&window);
+                    egui_context.begin_frame(input);
+                    egui::Window::new(library_bridge::get_program_name(&program))
+                        .show(&egui_context, |ui| {
+                            library_bridge::render_ui(&mut program, ui)
+                        });
+                    let output = egui_context.end_frame();
+                    let paint_jobs = egui_context.tessellate(output.shapes);
+                    let screen_descriptor = ScreenDescriptor {
+                        size_in_pixels: [config.width, config.height],
+                        pixels_per_point: 1.0,
+                    };
+
+                    // Update the egui renderer.
+                    {
+                        for (id, image_delta) in &output.textures_delta.set {
+                            egui_renderer.update_texture(&device, &queue, *id, image_delta);
+                        }
+                        for id in &output.textures_delta.free {
+                            egui_renderer.free_texture(id);
+                        }
+
+                        {
+                            egui_renderer.update_buffers(
+                                &device,
+                                &queue,
+                                &mut encoder,
+                                &paint_jobs,
+                                &screen_descriptor,
+                            );
+                        }
+                    }
+
+                    // Render the program and the ui.
+                    {
+                        let mut render_pass =
+                            encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                                label: None,
+                                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                                    view: &view,
+                                    resolve_target: None,
+                                    ops: wgpu::Operations {
+                                        load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
+                                        store: true,
+                                    },
+                                })],
+                                depth_stencil_attachment: None,
+                            });
+
+                        // Render the program first so the ui is on top.
+                        library_bridge::render_frame(&program, &mut render_pass);
+                        egui_renderer.render(&mut render_pass, &paint_jobs, &screen_descriptor);
+                    }
+
+                    // Present the frame.
+                    queue.submit(Some(encoder.finish()));
                     frame.present();
                 }
             }
-            Event::WindowEvent {
-                event: WindowEvent::CloseRequested,
-                ..
-            } => *control_flow = ControlFlow::Exit,
             _ => {}
         }
     });
@@ -137,8 +216,7 @@ pub fn start_app(data: Arc<Mutex<library_bridge::ReloadFlags>>) {
         env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
 
         let event_loop = EventLoop::new();
-        let mut builder = winit::window::WindowBuilder::new();
-        builder = builder.with_title("Demo hot reload");
+        let builder = winit::window::WindowBuilder::new().with_title("Demo hot reload");
         let window = builder.build(&event_loop).unwrap();
 
         pollster::block_on(run(event_loop, window, data));

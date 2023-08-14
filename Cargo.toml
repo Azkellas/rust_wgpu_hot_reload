@@ -21,6 +21,12 @@ winit = "0.28.6"
 env_logger = "0.10.0"
 pollster = "0.3.0"
 log = "0.4.19"
+egui = { git = "https://github.com/emilk/egui.git" }
+egui-wgpu = { git = "https://github.com/emilk/egui.git", features = ["winit"] }
+egui-winit = { git = "https://github.com/emilk/egui.git", default-features = false }
+# egui = "0.22.0" not compatible with wgpu 0.17 yet
+# egui-wgpu = "0.22.0" not compatible with wgpu 0.17 yet
+# egui-winit = "0.22.0" not compatible with wgpu 0.17 yet
 
 [features]
 reload = ["dep:hot-lib-reloader"]

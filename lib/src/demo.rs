@@ -1,7 +1,6 @@
 use std::borrow::Cow;
 
 use crate::helpers::Shader;
-
 use crate::program::{Program, ProgramError};
 
 pub struct DemoProgram {
@@ -17,6 +16,11 @@ impl Program for DemoProgram {
         let render_pipeline = Self::create_render_pipeline(surface, device, adapter)?;
 
         Ok(Self { render_pipeline })
+    }
+
+    /// Get program name.
+    fn get_name(&self) -> &'static str {
+        "Demo triangle"
     }
 
     /// Create render pipeline.
@@ -42,27 +46,23 @@ impl Program for DemoProgram {
     fn update(&mut self) {}
 
     /// Render program.
-    fn render(&self, view: &wgpu::TextureView, device: &wgpu::Device, queue: &wgpu::Queue) {
-        let mut encoder =
-            device.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
-        {
-            let mut rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                label: None,
-                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view,
-                    resolve_target: None,
-                    ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
-                        store: true,
-                    },
-                })],
-                depth_stencil_attachment: None,
-            });
-            rpass.set_pipeline(&self.render_pipeline);
-            rpass.draw(0..3, 0..1);
-        }
+    fn render<'a, 'b>(&'a self, render_pass: &mut wgpu::RenderPass<'b>)
+    where
+        'a: 'b,
+    {
+        render_pass.set_pipeline(&self.render_pipeline);
+        render_pass.draw(0..3, 0..1);
+    }
 
-        queue.submit(Some(encoder.finish()));
+    fn draw_ui(&mut self, ui: &mut egui::Ui) {
+        ui.label("Simple demo with a triangle.");
+        ui.separator();
+        ui.heading("Settings");
+        // add button
+        ui.add(egui::Slider::new(&mut 0.0, 0.0..=1.0).text("Length"));
+        if ui.button("Example button").clicked() {
+            println!("Button clicked.");
+        }
     }
 }
 

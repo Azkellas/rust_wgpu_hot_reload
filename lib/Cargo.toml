@@ -10,6 +10,7 @@ crate-type = ["rlib"]
 [dependencies]
 naga = "0.13.0"
 wgpu = "0.17.0"
+egui = { git = "https://github.com/emilk/egui.git" }
 
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
 rust-embed = "6.8.1" # Enable shader hot reload for native compilation.
