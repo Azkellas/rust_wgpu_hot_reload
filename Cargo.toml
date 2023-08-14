@@ -24,6 +24,7 @@ log = "0.4.19"
 egui = { git = "https://github.com/emilk/egui.git" }
 egui-wgpu = { git = "https://github.com/emilk/egui.git", features = ["winit"] }
 egui-winit = { git = "https://github.com/emilk/egui.git", default-features = false }
+wasm-bindgen = "0.2.87"
 # egui = "0.22.0" not compatible with wgpu 0.17 yet
 # egui-wgpu = "0.22.0" not compatible with wgpu 0.17 yet
 # egui-winit = "0.22.0" not compatible with wgpu 0.17 yet

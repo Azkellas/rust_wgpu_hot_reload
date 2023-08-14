@@ -31,23 +31,8 @@ And generate wasm bindings:
 
 As of 2023-08-14, wegbpu is available in chromium-based browsers and in firefox nightly behind a flag. See [webgpu.io](https://webgpu.io) for up to date browser implementation status. If WebGL2 is not enough and you need WebGPU, you need to add the flag `RUSTFLAGS=--cfg=web_sys_unstable_apis` before compiling.
 
-Create an `index.html` file in `target/generated` directory and add the following code:
 
-```html
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  </head>
-  <body>
-    <script type="module">
-      import init from "./wgpu-hot-reload.js";
-      init();
-    </script>
-  </body>
-</html>
-```
+Copy the `index.html` file in `target/generated` directory and add the following code:
 
 Finally run a web server locally inside the `target/generated` directory to see the project in the browser. Examples of servers are rust's
 [`simple-http-server target/generated`](https://crates.io/crates/simple-http-server),

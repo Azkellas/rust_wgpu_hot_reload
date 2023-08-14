@@ -1,4 +1,5 @@
 use egui_wgpu::renderer::{Renderer, ScreenDescriptor};
+use std::rc::Rc;
 use std::sync::{Arc, Mutex};
 use winit::{
     event::{Event, VirtualKeyCode, WindowEvent},
@@ -6,16 +7,21 @@ use winit::{
     window::Window,
 };
 
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen::JsCast;
+#[cfg(target_arch = "wasm32")]
+use winit::platform::web::WindowExtWebSys;
+
 use crate::hot_lib::library_bridge;
 
 async fn run(
     event_loop: EventLoop<()>,
-    window: Window,
+    window: Rc<Window>,
     data: Arc<Mutex<lib::helpers::ReloadFlags>>,
 ) {
     // Create the instance and surface.
     let instance = wgpu::Instance::default();
-    let surface = unsafe { instance.create_surface(&window) }.unwrap();
+    let surface = unsafe { instance.create_surface(window.as_ref()) }.unwrap();
 
     // Select an adapter and a surface configuration.
     let adapter = wgpu::util::initialize_adapter_from_env_or_default(&instance, Some(&surface))
@@ -217,19 +223,17 @@ pub fn start_app(data: Arc<Mutex<library_bridge::ReloadFlags>>) {
 
         let event_loop = EventLoop::new();
         let builder = winit::window::WindowBuilder::new().with_title("Demo hot reload");
-        let window = builder.build(&event_loop).unwrap();
+        let window = Rc::new(builder.build(&event_loop).unwrap());
 
         pollster::block_on(run(event_loop, window, data));
     }
     #[cfg(target_arch = "wasm32")]
     {
+        // Create event_loop and window.
         let event_loop = EventLoop::new();
-        let window = winit::window::Window::new(&event_loop).unwrap();
+        let window = Rc::new(winit::window::Window::new(&event_loop).unwrap());
 
-        std::panic::set_hook(Box::new(console_error_panic_hook::hook));
-        console_log::init().expect("could not initialize logger");
-        use winit::platform::web::WindowExtWebSys;
-        // On wasm, append the canvas to the document body
+        // Add canvas to document body.
         web_sys::window()
             .and_then(|win| win.document())
             .and_then(|doc| doc.body())
@@ -238,6 +242,45 @@ pub fn start_app(data: Arc<Mutex<library_bridge::ReloadFlags>>) {
                     .ok()
             })
             .expect("couldn't append canvas to document body");
+
+        // Initialize logging.
+        std::panic::set_hook(Box::new(console_error_panic_hook::hook));
+        console_log::init().expect("could not initialize logger");
+
+        // on winit 0.28, the canvas is not resized automatically.
+        // this is fixed in 0.29, but egui depends on 0.28 for now
+        // so we have to wait. 0.29 should be release late august.
+        // In the meantime, this is a workaround.
+        // See https://github.com/a-b-street/abstreet/pull/388 for more info.
+        let get_full_size = || {
+            // TODO Not sure how to get scrollbar dims
+            let scrollbars = 4.0;
+            let win = web_sys::window().unwrap();
+            // `inner_width` corresponds to the browser's `self.innerWidth` function, which are in
+            // Logical, not Physical, pixels
+            winit::dpi::LogicalSize::new(
+                win.inner_width().unwrap().as_f64().unwrap() - scrollbars,
+                win.inner_height().unwrap().as_f64().unwrap() - scrollbars,
+            )
+        };
+
+        window.set_inner_size(get_full_size());
+
+        // resize of our winit::Window whenever the browser window changes size.
+        {
+            let websys_window = web_sys::window().unwrap();
+            let window = window.clone();
+            let closure = wasm_bindgen::closure::Closure::wrap(Box::new(move |_: web_sys::Event| {
+                let size = get_full_size();
+                window.set_inner_size(size)
+            }) as Box<dyn FnMut(_)>);
+            websys_window
+                .add_event_listener_with_callback("resize", closure.as_ref().unchecked_ref())
+                .unwrap();
+            closure.forget();
+        }
+
+        // start the app.
         wasm_bindgen_futures::spawn_local(run(event_loop, window, data));
     }
 }

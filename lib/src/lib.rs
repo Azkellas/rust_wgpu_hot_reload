@@ -1,11 +1,12 @@
+//! This file should contain the entry points of the library.
+//! All reloadable functions should be set up here.
+//! To avoid name clashes, the functions in this file
+//! should not share names with other functions in the library.
 pub mod demo;
 pub mod helpers;
 pub mod program;
 
 use crate::program::{Program, ProgramError};
-
-/// This file should contain the entry points of the library.
-/// All reloadable functions should be set up here.
 
 /// Specify which program we want to run here.
 /// This should also be specified in src/hot_lib.rs
@@ -14,7 +15,7 @@ use crate::demo::DemoProgram as CurrentProgram;
 /// Hot-reloading does not support generics, so we need to specialize
 /// the functions we want to call from the outside.
 #[no_mangle]
-pub fn create_program<'a>(
+pub fn create_program(
     surface: &wgpu::Surface,
     device: &wgpu::Device,
     adapter: &wgpu::Adapter,

@@ -2,5 +2,5 @@
 linker = "rust-lld.exe"
 rustflags = ["-Zshare-generics=off"]
 
-[target.'cfg(target_family = "wasm")'.dependencies]
+[target.'cfg(target_family = "wasm")']
 rustflags = "--cfg=web_sys_unstable_apis"
