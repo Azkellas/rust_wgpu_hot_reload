@@ -1,13 +1,20 @@
 use std::borrow::Cow;
+use std::time;
+
+use wgpu::util::DeviceExt;
 
 use crate::helpers::Shader;
 use crate::pass::Pass;
 use crate::program::{Program, ProgramError};
-use wgpu::util::DeviceExt;
 
+pub struct DemoSettings {
+    triangle_size: f32,
+    speed: f32,
+}
 pub struct DemoProgram {
     render_pass: Pass,
-    triangle_size: f32,
+    start_time: time::Instant,
+    settings: DemoSettings,
 }
 
 impl Program for DemoProgram {
@@ -16,12 +23,15 @@ impl Program for DemoProgram {
         device: &wgpu::Device,
         adapter: &wgpu::Adapter,
     ) -> Result<Self, ProgramError> {
-        let triangle_size = 0.5;
         let render_pass = Self::create_render_pass(surface, device, adapter)?;
 
         Ok(Self {
             render_pass,
-            triangle_size,
+            start_time: time::Instant::now(),
+            settings: DemoSettings {
+                triangle_size: 0.5,
+                speed: 1.0,
+            },
         })
     }
 
@@ -55,7 +65,11 @@ impl Program for DemoProgram {
         queue.write_buffer(
             &self.render_pass.uniform_buf,
             0,
-            bytemuck::cast_slice(&[self.triangle_size]),
+            bytemuck::cast_slice(&[
+                self.start_time.elapsed().as_secs_f32(),
+                self.settings.triangle_size,
+                self.settings.speed,
+            ]),
         );
     }
 
@@ -74,7 +88,8 @@ impl Program for DemoProgram {
         ui.separator();
         ui.heading("Settings");
         // add button
-        ui.add(egui::Slider::new(&mut self.triangle_size, 0.0..=1.0).text("size"));
+        ui.add(egui::Slider::new(&mut self.settings.triangle_size, 0.0..=1.0).text("size"));
+        ui.add(egui::Slider::new(&mut self.settings.speed, 0.0..=5.0).text("speed"));
         if ui.button("Example button").clicked() {
             println!("Button clicked.");
         }
@@ -147,7 +162,7 @@ impl DemoProgram {
         // create uniform buffer.
         let uniforms = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("Camera Buffer"),
-            contents: bytemuck::cast_slice(&[0.0]),
+            contents: bytemuck::cast_slice(&[0.0, 0.0, 0.0]),
             usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
         });
 
