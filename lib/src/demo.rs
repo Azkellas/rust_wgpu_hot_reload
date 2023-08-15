@@ -9,6 +9,7 @@ use crate::program::{Program, ProgramError};
 
 pub struct DemoSettings {
     triangle_size: f32,
+    triangle_count: u32,
     speed: f32,
 }
 pub struct DemoProgram {
@@ -30,6 +31,7 @@ impl Program for DemoProgram {
             start_time: time::Instant::now(),
             settings: DemoSettings {
                 triangle_size: 0.5,
+                triangle_count: 1,
                 speed: 1.0,
             },
         })
@@ -62,12 +64,14 @@ impl Program for DemoProgram {
     /// Update program before rendering.
     fn update(&mut self, queue: &wgpu::Queue) {
         // update triangle size in uniform buffer
+        self.settings.triangle_count = 3;
         queue.write_buffer(
             &self.render_pass.uniform_buf,
             0,
             bytemuck::cast_slice(&[
                 self.start_time.elapsed().as_secs_f32(),
                 self.settings.triangle_size,
+                self.settings.triangle_count as f32,
                 self.settings.speed,
             ]),
         );
@@ -80,7 +84,7 @@ impl Program for DemoProgram {
     {
         render_pass.set_pipeline(&self.render_pass.pipeline);
         render_pass.set_bind_group(0, &self.render_pass.bind_group, &[]);
-        render_pass.draw(0..3, 0..1);
+        render_pass.draw(0..3 * self.settings.triangle_count, 0..1);
     }
 
     fn draw_ui(&mut self, ui: &mut egui::Ui) {
@@ -162,7 +166,7 @@ impl DemoProgram {
         // create uniform buffer.
         let uniforms = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("Camera Buffer"),
-            contents: bytemuck::cast_slice(&[0.0, 0.0, 0.0]),
+            contents: bytemuck::cast_slice(&[0.0, 0.0, 0.0, 0.0]),
             usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
         });
 
