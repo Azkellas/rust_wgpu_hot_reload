@@ -14,9 +14,8 @@ Then each include to the lib should be done via the module `hot_lib::library_bri
 
 - To run native release, run `cargo run --release`
 - To run native debug with shader hot reload only, run `cargo run`
-- To run native debug with shader and rust hot reload, run `cargo run --features reload` in one terminal and `cargo watch -w lib -x "rustc --crate-type=dylib -p lib"` in another terminal. Alternatively, use [cargo-runcc](https://crates.io/crates/runcc) and `cargo runcc -c runcc.yml` to run both commands at the same time.
-- To run wasm build, see below
-
+- To run native debug with shader and rust hot reload, run `cargo run --features reload` in one terminal and `cargo watch -w lib -x "rustc --crate-type=dylib -p lib"` in another terminal. Alternatively, use [cargo-runcc](https://crates.io/crates/runcc) [cargo-watch](https://github.com/watchexec/cargo-watch) and `cargo runcc -c runcc.yml` to run both commands at the same time.
+- To run wasm build, see below.
 
 ## Building for the web
 

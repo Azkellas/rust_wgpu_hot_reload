@@ -435,7 +435,7 @@ checksum = "9ea835d29036a4087793836fa931b08837ad5e957da9e23886b29586fb9b6650"
 [[package]]
 name = "ecolor"
 version = "0.22.0"
-source = "git+https://github.com/emilk/egui.git#481f44828cea1a679c5c65665ffc050e65b775f2"
+source = "git+https://github.com/emilk/egui.git?rev=b896d641c578c04603adf07a9350b8bfc3c7ed9f#b896d641c578c04603adf07a9350b8bfc3c7ed9f"
 dependencies = [
  "bytemuck",
 ]
@@ -443,7 +443,7 @@ dependencies = [
 [[package]]
 name = "egui"
 version = "0.22.0"
-source = "git+https://github.com/emilk/egui.git#481f44828cea1a679c5c65665ffc050e65b775f2"
+source = "git+https://github.com/emilk/egui.git?rev=b896d641c578c04603adf07a9350b8bfc3c7ed9f#b896d641c578c04603adf07a9350b8bfc3c7ed9f"
 dependencies = [
  "ahash 0.8.3",
  "epaint",
@@ -454,7 +454,7 @@ dependencies = [
 [[package]]
 name = "egui-wgpu"
 version = "0.22.0"
-source = "git+https://github.com/emilk/egui.git#481f44828cea1a679c5c65665ffc050e65b775f2"
+source = "git+https://github.com/emilk/egui.git?rev=b896d641c578c04603adf07a9350b8bfc3c7ed9f#b896d641c578c04603adf07a9350b8bfc3c7ed9f"
 dependencies = [
  "bytemuck",
  "epaint",
@@ -468,7 +468,7 @@ dependencies = [
 [[package]]
 name = "egui-winit"
 version = "0.22.0"
-source = "git+https://github.com/emilk/egui.git#481f44828cea1a679c5c65665ffc050e65b775f2"
+source = "git+https://github.com/emilk/egui.git?rev=b896d641c578c04603adf07a9350b8bfc3c7ed9f#b896d641c578c04603adf07a9350b8bfc3c7ed9f"
 dependencies = [
  "egui",
  "instant",
@@ -480,7 +480,7 @@ dependencies = [
 [[package]]
 name = "emath"
 version = "0.22.0"
-source = "git+https://github.com/emilk/egui.git#481f44828cea1a679c5c65665ffc050e65b775f2"
+source = "git+https://github.com/emilk/egui.git?rev=b896d641c578c04603adf07a9350b8bfc3c7ed9f#b896d641c578c04603adf07a9350b8bfc3c7ed9f"
 dependencies = [
  "bytemuck",
 ]
@@ -501,7 +501,7 @@ dependencies = [
 [[package]]
 name = "epaint"
 version = "0.22.0"
-source = "git+https://github.com/emilk/egui.git#481f44828cea1a679c5c65665ffc050e65b775f2"
+source = "git+https://github.com/emilk/egui.git?rev=b896d641c578c04603adf07a9350b8bfc3c7ed9f#b896d641c578c04603adf07a9350b8bfc3c7ed9f"
 dependencies = [
  "ab_glyph",
  "ahash 0.8.3",
@@ -985,6 +985,7 @@ checksum = "830d08ce1d1d941e6b30645f1a0eb5643013d835ce3779a5fc208261dbe10f55"
 name = "lib"
 version = "0.1.0"
 dependencies = [
+ "bytemuck",
  "egui",
  "naga",
  "rust-embed",

@@ -4,6 +4,7 @@
 //! should not share names with other functions in the library.
 pub mod demo;
 pub mod helpers;
+mod pass;
 pub mod program;
 
 use crate::program::{Program, ProgramError};
@@ -42,18 +43,18 @@ pub fn resize_program(
 }
 
 #[no_mangle]
-pub fn update_program_render_pipeline(
+pub fn update_program_passes(
     program: &mut CurrentProgram,
     surface: &wgpu::Surface,
     device: &wgpu::Device,
     adapter: &wgpu::Adapter,
 ) -> Result<(), ProgramError> {
-    program.update_render_pipeline(surface, device, adapter)
+    program.update_passes(surface, device, adapter)
 }
 
 #[no_mangle]
-pub fn update_program(program: &mut CurrentProgram) {
-    program.update()
+pub fn update_program(program: &mut CurrentProgram, queue: &wgpu::Queue) {
+    program.update(queue)
 }
 
 #[no_mangle]

@@ -109,13 +109,13 @@ async fn run(
                 // Reload shaders if needed
                 if !data.shaders.is_empty() {
                     println!("rebuild shaders {:?}", data.shaders);
-                    if let Err(program_error) = library_bridge::update_program_render_pipeline(
+                    if let Err(program_error) = library_bridge::update_program_passes(
                         &mut program,
                         &surface,
                         &device,
                         &adapter,
                     ) {
-                        println!("{:?}", program_error);
+                        println!("{program_error:?}");
                     }
                     data.shaders.clear();
                 }
@@ -123,13 +123,13 @@ async fn run(
                 // Rebuild render pipeline if needed
                 if data.lib == lib::helpers::LibState::Reloaded {
                     println!("reload lib");
-                    if let Err(program_error) = library_bridge::update_program_render_pipeline(
+                    if let Err(program_error) = library_bridge::update_program_passes(
                         &mut program,
                         &surface,
                         &device,
                         &adapter,
                     ) {
-                        println!("{:?}", program_error);
+                        println!("{program_error:?}");
                     }
                     data.lib = library_bridge::LibState::Stable;
                 }
@@ -149,7 +149,7 @@ async fn run(
                         .create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
 
                     // Update the program before drawing.
-                    library_bridge::update_program(&mut program);
+                    library_bridge::update_program(&mut program, &queue);
 
                     // Update the ui before drawing.
                     let input = egui_state.take_egui_input(&window);

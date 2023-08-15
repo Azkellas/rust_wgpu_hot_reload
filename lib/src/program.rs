@@ -15,7 +15,7 @@ pub trait Program: Sized {
     fn get_name(&self) -> &'static str;
 
     /// Create render pipeline.
-    fn update_render_pipeline(
+    fn update_passes(
         &mut self,
         surface: &wgpu::Surface,
         device: &wgpu::Device,
@@ -31,7 +31,7 @@ pub trait Program: Sized {
     );
 
     /// Update program before rendering.
-    fn update(&mut self);
+    fn update(&mut self, queue: &wgpu::Queue);
 
     /// Render program.
     fn render<'a, 'b>(&'a self, render_pass: &mut wgpu::RenderPass<'b>)

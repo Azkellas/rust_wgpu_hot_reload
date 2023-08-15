@@ -21,9 +21,9 @@ winit = "0.28.6"
 env_logger = "0.10.0"
 pollster = "0.3.0"
 log = "0.4.19"
-egui = { git = "https://github.com/emilk/egui.git" }
-egui-wgpu = { git = "https://github.com/emilk/egui.git", features = ["winit"] }
-egui-winit = { git = "https://github.com/emilk/egui.git", default-features = false }
+egui = { git = "https://github.com/emilk/egui.git", rev = "b896d641c578c04603adf07a9350b8bfc3c7ed9f" }
+egui-wgpu = { git = "https://github.com/emilk/egui.git", features = ["winit"], rev = "b896d641c578c04603adf07a9350b8bfc3c7ed9f" }
+egui-winit = { git = "https://github.com/emilk/egui.git", default-features = false, rev = "b896d641c578c04603adf07a9350b8bfc3c7ed9f" }
 wasm-bindgen = "0.2.87"
 # egui = "0.22.0" not compatible with wgpu 0.17 yet
 # egui-wgpu = "0.22.0" not compatible with wgpu 0.17 yet
