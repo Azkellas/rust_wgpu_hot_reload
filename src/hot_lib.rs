@@ -3,10 +3,7 @@
 pub mod library_bridge {
     pub use lib::helpers::{LibState, ReloadFlags};
     pub use lib::program::{Program, ProgramError};
-
-    // Specify which program we want to run here.
-    // This should also be specified in lib/lib.rs
-    pub use lib::demo::DemoProgram as CurrentProgram;
+    pub use lib::CurrentProgram;
 
     // Specific hot reload helpers.
     hot_functions_from_file!("lib/src/lib.rs");

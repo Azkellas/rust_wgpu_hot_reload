@@ -108,7 +108,8 @@ impl DemoProgram {
         adapter: &wgpu::Adapter,
         uniforms_bind_group_layout: &wgpu::BindGroupLayout,
     ) -> Result<wgpu::RenderPipeline, ProgramError> {
-        let shader = Shader::load("draw.wgsl");
+        let shader_path = "draw.wgsl";
+        let shader = Shader::load(shader_path);
         #[cfg(not(target_arch = "wasm32"))]
         #[cfg(debug_assertions)]
         {
@@ -117,9 +118,11 @@ impl DemoProgram {
             // but instantly crash.
             // this means in reload/debug mode, we parse the shader twice.
             let mut frontend = naga::front::wgsl::Frontend::new();
-            frontend
-                .parse(shader.as_str())
-                .map_err(|e| ProgramError::ShaderParseError(e.message().into()))?;
+            frontend.parse(shader.as_str()).map_err(|e| {
+                ProgramError::ShaderParseError(
+                    e.emit_to_string_with_path(shader.as_str(), shader_path),
+                )
+            })?;
         }
 
         let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {

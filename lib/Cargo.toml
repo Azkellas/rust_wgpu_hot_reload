@@ -3,10 +3,6 @@ name = "lib"
 version = "0.1.0"
 edition = "2021"
 
-[lib]
-crate-type = ["rlib"]
-# crate-type = ["rlib", "dylib"]
-
 [dependencies]
 naga = "0.13.0"
 wgpu = "0.17.0"

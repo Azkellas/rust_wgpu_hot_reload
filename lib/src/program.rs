@@ -1,6 +1,28 @@
-#[derive(Debug)]
+use std::fmt;
+
 pub enum ProgramError {
+    // This encapsulate naga::front::wgsl::ParseError that is not available in wasm it seems.
+    // The output is the same minus the colors.
     ShaderParseError(String),
+}
+
+impl fmt::Display for ProgramError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Self::ShaderParseError(message) => {
+                write!(f, "Shader parse Error:\n")?;
+                write!(f, "{message}")?;
+            }
+        }
+        Ok(())
+    }
+}
+
+/// Force Debug to be multilined like Display for the sake of clarity in shader files.
+impl fmt::Debug for ProgramError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        fmt::Display::fmt(&self, f)
+    }
 }
 
 pub trait Program: Sized {

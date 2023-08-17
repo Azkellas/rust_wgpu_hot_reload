@@ -11,7 +11,7 @@ use crate::program::{Program, ProgramError};
 
 /// Specify which program we want to run here.
 /// This should also be specified in src/hot_lib.rs
-use crate::demo::DemoProgram as CurrentProgram;
+pub use crate::demo::DemoProgram as CurrentProgram;
 
 /// Hot-reloading does not support generics, so we need to specialize
 /// the functions we want to call from the outside.

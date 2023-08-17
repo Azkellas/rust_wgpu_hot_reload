@@ -13,7 +13,7 @@ fn vs_main(@builtin(vertex_index) in_vertex_index: u32) -> @builtin(position) ve
     let pi = 3.14159265359;
     let speed = uniforms.speed;
     let radius = uniforms.size;
-    let angle = speed * uniforms.elapsed + 2.0 * pi * f32(in_vertex_index) / (3.0 * uniforms.count) ;
+    let angle = speed * uniforms.elapsed + 2.0 * pi * f32(in_vertex_index) / (3.0 * uniforms.count);
     return vec4<f32>(radius * cos(angle), radius * sin(angle), 0.0, 1.0);
 }
 
