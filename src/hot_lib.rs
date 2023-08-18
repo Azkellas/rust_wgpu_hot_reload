@@ -1,3 +1,4 @@
+/// Library bridge when hot reloading.
 #[cfg(feature = "reload")]
 #[hot_lib_reloader::hot_module(dylib = "lib")]
 pub mod library_bridge {
@@ -17,14 +18,12 @@ pub mod library_bridge {
     pub fn version() -> usize {}
 }
 
+/// Library bridge when rust reload is disabled.
 #[cfg(not(feature = "reload"))]
 pub mod library_bridge {
     pub use lib::helpers::{LibState, ReloadFlags};
     pub use lib::program::{Program, ProgramError};
-
-    // Specify which program we want to run here.
-    // This should also be specified in lib/lib.rs
-    pub use lib::demo::DemoProgram as CurrentProgram;
+    pub use lib::CurrentProgram;
 
     // Include lib file directly since it is not done via the hot-reload module.
     pub use lib::*;

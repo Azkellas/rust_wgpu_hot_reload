@@ -14,6 +14,7 @@ use winit::platform::web::WindowExtWebSys;
 
 use crate::hot_lib::library_bridge;
 
+/// Initialize wgpu and run the app.
 async fn run(
     event_loop: EventLoop<()>,
     window: Rc<Window>,
@@ -216,6 +217,7 @@ async fn run(
     });
 }
 
+/// Create the window depending on the platform.
 pub fn start_app(data: Arc<Mutex<library_bridge::ReloadFlags>>) {
     #[cfg(not(target_arch = "wasm32"))]
     {

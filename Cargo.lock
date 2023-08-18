@@ -987,6 +987,7 @@ version = "0.1.0"
 dependencies = [
  "bytemuck",
  "egui",
+ "instant",
  "naga",
  "rust-embed",
  "wgpu",

@@ -1,24 +1,40 @@
 use std::borrow::Cow;
-use std::time;
 
 use wgpu::util::DeviceExt;
 
+use crate::frame_rate::FrameRate;
 use crate::helpers::Shader;
 use crate::pass::Pass;
 use crate::program::{Program, ProgramError};
 
+/// Settings for the DemoProgram
+/// polygon_edge_count is not exposed in ui on purpose for demo purposes
+/// change it in the code with hot-reload enable to see it working.
 pub struct DemoSettings {
-    triangle_size: f32,
-    triangle_count: u32,
-    speed: f32,
+    /// polygon radius in window, between 0 and 1
+    polygon_size: f32, // exposed in ui
+    /// regular polygon edge count, expected to be 3 or more
+    polygon_edge_count: u32, // exposed in rust only
+    /// speed of the rotation
+    speed: f32, // exposed in ui
 }
+
+/// Demo Program rotation a regular polygon showcasing the three type of live updates
+///     shader: draw.wgsl
+///     rust: polygon_edge_count in DemoProgram::update
+///     ui: size and speed
 pub struct DemoProgram {
     render_pass: Pass,
-    start_time: time::Instant,
+    _start_time: instant::Instant,
+    last_update: instant::Instant,
     settings: DemoSettings,
+    elapsed: f32, // elapsed take the speed into consideration
+    frame_rate: FrameRate,
 }
 
 impl Program for DemoProgram {
+    /// Create program.
+    /// Assume the render_pipeline will be properly initialized.
     fn init(
         surface: &wgpu::Surface,
         device: &wgpu::Device,
@@ -28,12 +44,15 @@ impl Program for DemoProgram {
 
         Ok(Self {
             render_pass,
-            start_time: time::Instant::now(),
+            _start_time: instant::Instant::now(),
+            last_update: instant::Instant::now(),
             settings: DemoSettings {
-                triangle_size: 0.5,
-                triangle_count: 1,
+                polygon_size: 0.5,
+                polygon_edge_count: 3,
                 speed: 1.0,
             },
+            elapsed: 0.0,
+            frame_rate: FrameRate::default(),
         })
     }
 
@@ -42,7 +61,7 @@ impl Program for DemoProgram {
         "Demo triangle"
     }
 
-    /// Create render pipeline.
+    /// Recreate render pass.
     fn update_passes(
         &mut self,
         surface: &wgpu::Surface,
@@ -53,6 +72,7 @@ impl Program for DemoProgram {
         Ok(())
     }
 
+    // Resize owned textures if needed, nothing for the demo here.
     fn resize(
         &mut self,
         _surface_configuration: &wgpu::SurfaceConfiguration,
@@ -63,16 +83,22 @@ impl Program for DemoProgram {
 
     /// Update program before rendering.
     fn update(&mut self, queue: &wgpu::Queue) {
-        // update triangle size in uniform buffer
-        self.settings.triangle_count = 3;
+        // Set the edge count of the regular polygon.
+        // This is not exposed in the ui on purpose to demonstrate the rust hot reload.
+        self.settings.polygon_edge_count = 150;
+
+        // update elapsed time, taking speed into consideration.
+        let last_frame_duration = self.last_update.elapsed().as_secs_f32();
+        self.elapsed += last_frame_duration * self.settings.speed;
+        self.frame_rate.update(last_frame_duration);
+        self.last_update = instant::Instant::now();
         queue.write_buffer(
             &self.render_pass.uniform_buf,
             0,
             bytemuck::cast_slice(&[
-                self.start_time.elapsed().as_secs_f32(),
-                self.settings.triangle_size,
-                self.settings.triangle_count as f32,
-                self.settings.speed,
+                self.elapsed,
+                self.settings.polygon_size,
+                self.settings.polygon_edge_count as f32,
             ]),
         );
     }
@@ -82,26 +108,30 @@ impl Program for DemoProgram {
     where
         'a: 'b,
     {
+        // We draw a regular polygon with n edges
+        // by drawing the n triangles starting from the center and with two adjacent vertices
+        // hence the * 3 vertex count, a square results in 4 triangles so 12 vertices to draw.
+        let vertex_count = self.settings.polygon_edge_count * 3;
         render_pass.set_pipeline(&self.render_pass.pipeline);
         render_pass.set_bind_group(0, &self.render_pass.bind_group, &[]);
-        render_pass.draw(0..3 * self.settings.triangle_count, 0..1);
+        render_pass.draw(0..vertex_count, 0..1);
     }
 
+    /// Draw ui with egui.
     fn draw_ui(&mut self, ui: &mut egui::Ui) {
-        ui.label("Simple demo with a triangle.");
-        ui.separator();
         ui.heading("Settings");
-        // add button
-        ui.add(egui::Slider::new(&mut self.settings.triangle_size, 0.0..=1.0).text("size"));
-        ui.add(egui::Slider::new(&mut self.settings.speed, 0.0..=5.0).text("speed"));
-        if ui.button("Example button").clicked() {
-            println!("Button clicked.");
-        }
+        ui.separator();
+        ui.add(egui::Slider::new(&mut self.settings.polygon_size, 0.0..=1.0).text("size"));
+        ui.add(egui::Slider::new(&mut self.settings.speed, 0.0..=20.0).text("speed"));
+        ui.separator();
+        ui.label(std::format!("framerate: {:.0}fps", self.frame_rate.get()));
     }
 }
 
 impl DemoProgram {
     /// Create render pipeline.
+    /// In debug mode it will return a ProgramError if it failed compiling a shader
+    /// In release/wasm, il will crash since wgpu does not return errors in such situations.
     fn create_render_pipeline(
         surface: &wgpu::Surface,
         device: &wgpu::Device,
@@ -161,6 +191,8 @@ impl DemoProgram {
         Ok(pipeline)
     }
 
+    /// Create render pass.
+    /// Will return an error in debug, and crash in release/wasm if a shader is malformed.
     fn create_render_pass(
         surface: &wgpu::Surface,
         device: &wgpu::Device,

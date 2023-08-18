@@ -1,3 +1,15 @@
+//! wgpu hot reload template.
+//! this project is divided in two packages:
+//! this one with static code
+//! and lib that contains hot-reloadable code.
+//!
+//! src is in charge of watching the code to be updated and
+//! running the main thread. Almost nothing should be done in this package.
+//!
+//! lib should contain all project-specific code.
+//! See lib::program::Program for the trait to implement
+//! and lib::demo::DemoProgram for an example.
+
 mod hot_lib;
 mod runner;
 
@@ -14,6 +26,9 @@ use notify::{Config, RecommendedWatcher, RecursiveMode, Watcher};
 #[cfg(debug_assertions)]
 use std::path::Path;
 
+/// Watch shader folder. Only done in native debug mode.
+/// Everytime a shader is modified/added/deleted,
+/// it will update the ReloadFlags so the program can reload them.
 #[cfg(not(target_arch = "wasm32"))]
 #[cfg(debug_assertions)]
 fn watch<P: AsRef<Path>>(
@@ -47,6 +62,7 @@ fn watch<P: AsRef<Path>>(
     Ok(())
 }
 
+/// App entry point.
 fn main() {
     let data = Arc::new(Mutex::new(lib::helpers::ReloadFlags {
         shaders: vec![],
