@@ -3,12 +3,12 @@
 //! this one with static code
 //! and lib that contains hot-reloadable code.
 //!
-//! src is in charge of watching the code to be updated and
+//! `src` is in charge of watching the code to be updated and
 //! running the main thread. Almost nothing should be done in this package.
 //!
-//! lib should contain all project-specific code.
-//! See lib::program::Program for the trait to implement
-//! and lib::demo::DemoProgram for an example.
+//! `lib` should contain all project-specific code.
+//! See `lib::program::Program` for the trait to implement
+//! and `lib::demo::DemoProgram` for an example.
 
 mod hot_lib;
 mod runner;
@@ -28,7 +28,7 @@ use std::path::Path;
 
 /// Watch shader folder. Only done in native debug mode.
 /// Everytime a shader is modified/added/deleted,
-/// it will update the ReloadFlags so the program can reload them.
+/// it will update the `ReloadFlags` so the program can reload them.
 #[cfg(not(target_arch = "wasm32"))]
 #[cfg(debug_assertions)]
 fn watch<P: AsRef<Path>>(
@@ -51,8 +51,8 @@ fn watch<P: AsRef<Path>>(
                 log::info!("Change: {:?}", event.paths);
                 let mut data = data.lock().unwrap();
                 event.paths.iter().for_each(|p| {
-                    let path = p.to_str().unwrap().to_owned();
-                    data.shaders.push(path);
+                    let shader_path = p.to_str().unwrap().to_owned();
+                    data.shaders.push(shader_path);
                 });
             }
             Err(error) => log::error!("Error: {error:?}"),

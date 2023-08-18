@@ -12,11 +12,14 @@ pub mod program;
 use crate::program::{Program, ProgramError};
 
 /// Specify which program we want to run here.
-/// This should also be specified in src/hot_lib.rs
+/// This should also be specified in `src/hot_lib.rs`
 pub use crate::demo::DemoProgram as CurrentProgram;
 
 /// Hot-reloading does not support generics, so we need to specialize
 /// the functions we want to call from the outside.
+///
+/// # Errors
+/// - `ProgramError::ShaderParseError` when the shader could not be compiled.
 #[no_mangle]
 pub fn create_program(
     surface: &wgpu::Surface,
@@ -26,7 +29,7 @@ pub fn create_program(
     CurrentProgram::init(surface, device, adapter)
 }
 
-/// Contrary to Program::get_name, this function returns a String
+/// Contrary to `Program::get_name`, this function returns a String
 /// and not a &'static str since we cannot return a static reference
 /// from a dynamic library.
 #[no_mangle]
@@ -44,11 +47,14 @@ pub fn resize_program(
     device: &wgpu::Device,
     queue: &wgpu::Queue,
 ) {
-    program.resize(surface_configuration, device, queue)
+    program.resize(surface_configuration, device, queue);
 }
 
 /// Update program passes. Called when a shader needs to be reloaded
 /// or the libray is done reloading,
+///
+/// # Errors
+/// - `ProgramError::ShaderParseError` when the shader could not be compiled.
 #[no_mangle]
 pub fn update_program_passes(
     program: &mut CurrentProgram,
@@ -62,7 +68,7 @@ pub fn update_program_passes(
 /// Update program. Called each frame before rendering.
 #[no_mangle]
 pub fn update_program(program: &mut CurrentProgram, queue: &wgpu::Queue) {
-    program.update(queue)
+    program.update(queue);
 }
 
 /// Render frame.
@@ -71,11 +77,11 @@ pub fn render_frame<'a, 'b>(program: &'a CurrentProgram, render_pass: &mut wgpu:
 where
     'a: 'b,
 {
-    program.render(render_pass)
+    program.render(render_pass);
 }
 
-/// Render ui. Called after render_frame to ensure ui is on top.
+/// Render ui. Called after `render_frame` to ensure ui is on top.
 #[no_mangle]
 pub fn render_ui(program: &mut CurrentProgram, ui: &mut egui::Ui) {
-    program.draw_ui(ui)
+    program.draw_ui(ui);
 }

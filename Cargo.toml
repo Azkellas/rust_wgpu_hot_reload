@@ -22,7 +22,9 @@ env_logger = "0.10.0"
 pollster = "0.3.0"
 log = "0.4.19"
 egui = { git = "https://github.com/emilk/egui.git", rev = "b896d641c578c04603adf07a9350b8bfc3c7ed9f" }
-egui-wgpu = { git = "https://github.com/emilk/egui.git", features = ["winit"], rev = "b896d641c578c04603adf07a9350b8bfc3c7ed9f" }
+egui-wgpu = { git = "https://github.com/emilk/egui.git", features = [
+    "winit",
+], rev = "b896d641c578c04603adf07a9350b8bfc3c7ed9f" }
 egui-winit = { git = "https://github.com/emilk/egui.git", default-features = false, rev = "b896d641c578c04603adf07a9350b8bfc3c7ed9f" }
 wasm-bindgen = "0.2.87"
 # egui = "0.22.0" not compatible with wgpu 0.17 yet
@@ -39,13 +41,9 @@ opt-level = 0
 opt-level = 1
 
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
-rust-embed = "6.8.1" # Enable shader hot reload for native compilation.
-naga = "0.13.0"
 notify = "6.0.1"
 
 [target.'cfg(target_family = "wasm")'.dependencies]
-# Embed shaders in wasm.
-rust-embed = { version = "6.8.1", features = ["debug-embed"] }
 wasm-bindgen-futures = "0.4.37"
 web-sys = "0.3.64"
 console_error_panic_hook = "0.1.7"

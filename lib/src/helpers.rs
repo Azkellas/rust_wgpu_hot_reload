@@ -3,7 +3,7 @@ use rust_embed::RustEmbed;
 /// Shader helpers
 /// Will load from file in native debug mode to allow reloading at runtime
 /// and embed in binary in wasm/release mode.
-#[derive(RustEmbed)]
+#[derive(RustEmbed, Clone, Copy, Debug)]
 #[folder = "../shaders/"]
 pub struct Shader;
 
@@ -22,7 +22,7 @@ impl Shader {
 }
 
 /// Library state in hot reload mode
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, Copy, Clone, Debug)]
 pub enum LibState {
     /// Library is stable: nothing to do
     Stable,
@@ -35,6 +35,7 @@ pub enum LibState {
 /// Reload flags contain the state of the library / shader folder
 /// `shaders` contains the shaders that were updated until last rebuild
 /// `lib` is the state of the library
+#[derive(Debug)]
 pub struct ReloadFlags {
     pub shaders: Vec<String>,
     pub lib: LibState,

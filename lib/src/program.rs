@@ -9,7 +9,7 @@ pub enum ProgramError {
 
 impl fmt::Display for ProgramError {
     /// Display error.
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::ShaderParseError(message) => {
                 writeln!(f, "Shader parse Error:")?;
@@ -22,7 +22,7 @@ impl fmt::Display for ProgramError {
 
 impl fmt::Debug for ProgramError {
     /// Force Debug to be multilined like Display for the sake of clarity in shader files.
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt::Display::fmt(&self, f)
     }
 }
@@ -32,6 +32,9 @@ impl fmt::Debug for ProgramError {
 /// All programs (ie specific projects) should implement this trait.
 pub trait Program: Sized {
     /// Create program.
+    ///
+    /// # Errors
+    /// - `ProgramError::ShaderParseError` when the shader could not be compiled.
     fn init(
         surface: &wgpu::Surface,
         device: &wgpu::Device,
@@ -42,6 +45,9 @@ pub trait Program: Sized {
     fn get_name(&self) -> &'static str;
 
     /// Create render pipeline.
+    ///
+    /// # Errors
+    /// - `ProgramError::ShaderParseError` when the shader could not be compiled.
     fn update_passes(
         &mut self,
         surface: &wgpu::Surface,

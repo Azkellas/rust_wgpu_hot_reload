@@ -7,9 +7,10 @@ use crate::helpers::Shader;
 use crate::pass::Pass;
 use crate::program::{Program, ProgramError};
 
-/// Settings for the DemoProgram
-/// polygon_edge_count is not exposed in ui on purpose for demo purposes
+/// Settings for the `DemoProgram`
+/// `polygon_edge_count` is not exposed in ui on purpose for demo purposes
 /// change it in the code with hot-reload enable to see it working.
+#[derive(Clone, Copy, Debug)]
 pub struct DemoSettings {
     /// polygon radius in window, between 0 and 1
     polygon_size: f32, // exposed in ui
@@ -20,9 +21,10 @@ pub struct DemoSettings {
 }
 
 /// Demo Program rotation a regular polygon showcasing the three type of live updates
-///     shader: draw.wgsl
-///     rust: polygon_edge_count in DemoProgram::update
-///     ui: size and speed
+///     shader: `draw.wgsl`
+///     rust: `polygon_edge_count` in `DemoProgram::update`
+///     ui: `size` and `speed`
+#[derive(Debug)]
 pub struct DemoProgram {
     render_pass: Pass,
     _start_time: instant::Instant,
@@ -34,7 +36,7 @@ pub struct DemoProgram {
 
 impl Program for DemoProgram {
     /// Create program.
-    /// Assume the render_pipeline will be properly initialized.
+    /// Assume the `render_pipeline` will be properly initialized.
     fn init(
         surface: &wgpu::Surface,
         device: &wgpu::Device,
@@ -130,7 +132,7 @@ impl Program for DemoProgram {
 
 impl DemoProgram {
     /// Create render pipeline.
-    /// In debug mode it will return a ProgramError if it failed compiling a shader
+    /// In debug mode it will return a `ProgramError` if it failed compiling a shader
     /// In release/wasm, il will crash since wgpu does not return errors in such situations.
     fn create_render_pipeline(
         surface: &wgpu::Surface,

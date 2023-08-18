@@ -73,32 +73,31 @@ async fn run(
         // Poll all events to ensure a maximum framerate.
         *control_flow = ControlFlow::Poll;
         match event {
-            Event::WindowEvent { event, .. } => {
-                match event {
+            Event::WindowEvent {
+                event: window_event,
+                ..
+            } => {
+                match window_event {
                     WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
                     WindowEvent::KeyboardInput { input, .. }
                         if input.virtual_keycode == Some(VirtualKeyCode::Escape) =>
                     {
-                        *control_flow = ControlFlow::Exit
+                        *control_flow = ControlFlow::Exit;
                     }
-                    WindowEvent::Resized(size) => {
+                    WindowEvent::Resized(new_size) => {
                         // Resize with 0 width and height is used by winit to signal a minimize event on Windows.
                         // See: https://github.com/rust-windowing/winit/issues/208
                         // This solves an issue where the app would panic when minimizing on Windows.
-                        if size.width > 0 && size.height > 0 {
-                            config.width = size.width;
-                            config.height = size.height;
+                        if new_size.width > 0 && new_size.height > 0 {
+                            config.width = new_size.width;
+                            config.height = new_size.height;
                             surface.configure(&device, &config);
                             library_bridge::resize_program(&mut program, &config, &device, &queue);
                         }
                     }
-                    WindowEvent::CursorMoved { .. } => {
-                        // ignore event response.
-                        let _ = egui_state.on_event(&egui_context, &event);
-                    }
                     _ => {
                         // ignore event response.
-                        let _ = egui_state.on_event(&egui_context, &event);
+                        let _ = egui_state.on_event(&egui_context, &window_event);
                     }
                 }
             }
@@ -109,28 +108,36 @@ async fn run(
                 let mut data = data.lock().unwrap();
                 // Reload shaders if needed
                 if !data.shaders.is_empty() {
-                    println!("rebuild shaders {:?}", data.shaders);
+                    log::info!("rebuild shaders {:?}", data.shaders);
                     if let Err(program_error) = library_bridge::update_program_passes(
                         &mut program,
                         &surface,
                         &device,
                         &adapter,
                     ) {
-                        println!("{program_error:?}");
+                        log::error!("{program_error:?}");
+                    }
+                    if let Err(program_error) = library_bridge::update_program_passes(
+                        &mut program,
+                        &surface,
+                        &device,
+                        &adapter,
+                    ) {
+                        log::error!("{program_error:?}");
                     }
                     data.shaders.clear();
                 }
 
                 // Rebuild render pipeline if needed
                 if data.lib == lib::helpers::LibState::Reloaded {
-                    println!("reload lib");
+                    log::info!("reload lib");
                     if let Err(program_error) = library_bridge::update_program_passes(
                         &mut program,
                         &surface,
                         &device,
                         &adapter,
                     ) {
-                        println!("{program_error:?}");
+                        log::error!("{program_error}");
                     }
                     data.lib = library_bridge::LibState::Stable;
                 }
@@ -155,10 +162,12 @@ async fn run(
                     // Update the ui before drawing.
                     let input = egui_state.take_egui_input(&window);
                     egui_context.begin_frame(input);
-                    egui::Window::new(library_bridge::get_program_name(&program))
-                        .show(&egui_context, |ui| {
-                            library_bridge::render_ui(&mut program, ui)
-                        });
+                    egui::Window::new(library_bridge::get_program_name(&program)).show(
+                        &egui_context,
+                        |ui| {
+                            library_bridge::render_ui(&mut program, ui);
+                        },
+                    );
                     let output = egui_context.end_frame();
                     let paint_jobs = egui_context.tessellate(output.shapes);
                     let screen_descriptor = ScreenDescriptor {
