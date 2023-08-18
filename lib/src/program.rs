@@ -67,9 +67,7 @@ pub trait Program: Sized {
     fn update(&mut self, queue: &wgpu::Queue);
 
     /// Render program.
-    fn render<'a, 'b>(&'a self, render_pass: &mut wgpu::RenderPass<'b>)
-    where
-        'a: 'b;
+    fn render(&self, view: &wgpu::TextureView, device: &wgpu::Device, queue: &wgpu::Queue);
 
     /// Draw ui.
     fn draw_ui(&mut self, ui: &mut egui::Ui);

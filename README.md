@@ -39,6 +39,13 @@ Finally run a web server locally inside the `target/generated` directory to see 
 `ruby -run -e httpd -p 8000 target/generated`.
 Python's debug server (`python -m http.server target/generated`) may have issues with MIME types causing failures.
 
+## Troubleshooting
+- Since the wasm and native targets use different flags, switching from one target takes time. Be careful
+to set rust-analyzer to the same target you're building to, otherwise they will compete against each other
+and create a lot of unnecessary recompiling.
+- Starting the hot-reload mode with runcc can sometimes crash when lib is too slow to compile, in which case you should just have to restart it.
+
 ## References:
-- See [hot-lib-reloader-rs](https://github.com/rksm/hot-lib-reloader-rs) for more information about hot reloading Rust code.
-- [wgpu](https://github.com/gfx-rs/wgpu)
+- See [hot-lib-reloader-rs](https://github.com/rksm/hot-lib-reloader-rs) for more information about hot reloading Rust code
+- [wgpu](https://github.com/gfx-rs/wgpu) and its [boids](https://github.com/gfx-rs/wgpu/tree/trunk/examples/boids) example
+- [learn-wgpu](https://sotrh.github.io/learn-wgpu/)

@@ -73,11 +73,13 @@ pub fn update_program(program: &mut CurrentProgram, queue: &wgpu::Queue) {
 
 /// Render frame.
 #[no_mangle]
-pub fn render_frame<'a, 'b>(program: &'a CurrentProgram, render_pass: &mut wgpu::RenderPass<'b>)
-where
-    'a: 'b,
-{
-    program.render(render_pass);
+pub fn render_frame(
+    program: &CurrentProgram,
+    view: &wgpu::TextureView,
+    device: &wgpu::Device,
+    queue: &wgpu::Queue,
+) {
+    program.render(view, device, queue);
 }
 
 /// Render ui. Called after `render_frame` to ensure ui is on top.

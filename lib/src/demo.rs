@@ -27,7 +27,7 @@ pub struct DemoSettings {
 #[derive(Debug)]
 pub struct DemoProgram {
     render_pass: Pass,
-    _start_time: instant::Instant,
+    _start_time: instant::Instant, // std::time::Instant is not compatible with wasm
     last_update: instant::Instant,
     settings: DemoSettings,
     elapsed: f32, // elapsed take the speed into consideration
@@ -106,17 +106,36 @@ impl Program for DemoProgram {
     }
 
     /// Render program.
-    fn render<'a, 'b>(&'a self, render_pass: &mut wgpu::RenderPass<'b>)
-    where
-        'a: 'b,
-    {
+    fn render(&self, view: &wgpu::TextureView, device: &wgpu::Device, queue: &wgpu::Queue) {
         // We draw a regular polygon with n edges
         // by drawing the n triangles starting from the center and with two adjacent vertices
         // hence the * 3 vertex count, a square results in 4 triangles so 12 vertices to draw.
         let vertex_count = self.settings.polygon_edge_count * 3;
-        render_pass.set_pipeline(&self.render_pass.pipeline);
-        render_pass.set_bind_group(0, &self.render_pass.bind_group, &[]);
-        render_pass.draw(0..vertex_count, 0..1);
+
+        // Create a command encoder.
+        let mut encoder =
+            device.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
+
+        {
+            // render pass.
+            let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: None,
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view: &view,
+                    resolve_target: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
+                        store: true,
+                    },
+                })],
+                depth_stencil_attachment: None,
+            });
+            render_pass.set_pipeline(&self.render_pass.pipeline);
+            render_pass.set_bind_group(0, &self.render_pass.bind_group, &[]);
+            render_pass.draw(0..vertex_count, 0..1);
+        }
+
+        queue.submit(Some(encoder.finish()));
     }
 
     /// Draw ui with egui.

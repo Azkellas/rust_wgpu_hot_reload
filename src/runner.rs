@@ -159,6 +159,9 @@ async fn run(
                     // Update the program before drawing.
                     library_bridge::update_program(&mut program, &queue);
 
+                    // Render the program first so the ui is on top.
+                    library_bridge::render_frame(&program, &view, &device, &queue);
+
                     // Update the ui before drawing.
                     let input = egui_state.take_egui_input(&window);
                     egui_context.begin_frame(input);
@@ -195,7 +198,7 @@ async fn run(
                         }
                     }
 
-                    // Render the program and the ui.
+                    // Render ui.
                     {
                         let mut render_pass =
                             encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
@@ -204,15 +207,13 @@ async fn run(
                                     view: &view,
                                     resolve_target: None,
                                     ops: wgpu::Operations {
-                                        load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
+                                        load: wgpu::LoadOp::Load,
                                         store: true,
                                     },
                                 })],
                                 depth_stencil_attachment: None,
                             });
 
-                        // Render the program first so the ui is on top.
-                        library_bridge::render_frame(&program, &mut render_pass);
                         egui_renderer.render(&mut render_pass, &paint_jobs, &screen_descriptor);
                     }
 
