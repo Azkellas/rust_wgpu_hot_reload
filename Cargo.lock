@@ -988,7 +988,8 @@ dependencies = [
  "bytemuck",
  "egui",
  "instant",
- "naga",
+ "log",
+ "pollster",
  "rust-embed",
  "wgpu",
 ]

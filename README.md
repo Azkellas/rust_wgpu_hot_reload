@@ -44,6 +44,7 @@ Python's debug server (`python -m http.server target/generated`) may have issues
 to set rust-analyzer to the same target you're building to, otherwise they will compete against each other
 and create a lot of unnecessary recompiling.
 - Starting the hot-reload mode with runcc can sometimes crash when lib is too slow to compile, in which case you should just have to restart it.
+- wgpu does not use the idiomatic rust way `Error` to handle errors. See [here](https://github.com/gfx-rs/wgpu/issues/3767) for more info, or have a look at `DemoProgram::create_render_pipeline` to see an example.
 
 ## References:
 - See [hot-lib-reloader-rs](https://github.com/rksm/hot-lib-reloader-rs) for more information about hot reloading Rust code

@@ -8,7 +8,8 @@ wgpu = "0.17.0"
 egui = { git = "https://github.com/emilk/egui.git", rev = "b896d641c578c04603adf07a9350b8bfc3c7ed9f" }
 bytemuck = "1.13.1"
 instant = "0.1.12"
-naga = "0.13.0"
+pollster = "0.3.0"
+log = "0.4.19"
 
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
 rust-embed = "6.8.1" # Enable shader hot reload for native compilation.

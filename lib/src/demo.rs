@@ -121,7 +121,7 @@ impl Program for DemoProgram {
             let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: None,
                 color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view: &view,
+                    view,
                     resolve_target: None,
                     ops: wgpu::Operations {
                         load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
@@ -161,25 +161,21 @@ impl DemoProgram {
     ) -> Result<wgpu::RenderPipeline, ProgramError> {
         let shader_path = "draw.wgsl";
         let shader = Shader::load(shader_path);
-        #[cfg(not(target_arch = "wasm32"))]
-        #[cfg(debug_assertions)]
-        {
-            // in reload mode, we need to parse the shader to check for errors
-            // since wgpu does not return errors when creating the shader module
-            // but instantly crash.
-            // this means in reload/debug mode, we parse the shader twice.
-            let mut frontend = naga::front::wgsl::Frontend::new();
-            frontend.parse(shader.as_str()).map_err(|e| {
-                ProgramError::ShaderParseError(
-                    e.emit_to_string_with_path(shader.as_str(), shader_path),
-                )
-            })?;
-        }
 
+        // device.create_shader_module panics if the shader is malformed
+        device.push_error_scope(wgpu::ErrorFilter::Validation);
         let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-            label: None,
+            label: Some("draw.wgsl"),
             source: wgpu::ShaderSource::Wgsl(Cow::Borrowed(shader.as_str())),
         });
+        if let Some(error) = pollster::block_on(device.pop_error_scope()) {
+            log::error!("{}", error);
+            // redundant, naga already logs the error.
+            return Err(ProgramError::ShaderParseError(format!(
+                "{}: {}",
+                shader_path, error
+            )));
+        }
 
         let swapchain_capabilities = surface.get_capabilities(adapter);
         let swapchain_format = swapchain_capabilities.formats[0];
