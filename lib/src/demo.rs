@@ -3,9 +3,9 @@ use std::borrow::Cow;
 use wgpu::util::DeviceExt;
 
 use crate::frame_rate::FrameRate;
-use crate::helpers::Shader;
 use crate::pass::Pass;
 use crate::program::{Program, ProgramError};
+use crate::shader_builder::ShaderBuilder;
 
 /// Settings for the `DemoProgram`
 /// `polygon_edge_count` is not exposed in ui on purpose for demo purposes
@@ -87,7 +87,7 @@ impl Program for DemoProgram {
     fn update(&mut self, queue: &wgpu::Queue) {
         // Set the edge count of the regular polygon.
         // This is not exposed in the ui on purpose to demonstrate the rust hot reload.
-        self.settings.polygon_edge_count = 150;
+        self.settings.polygon_edge_count = 7;
 
         // update elapsed time, taking speed into consideration.
         let last_frame_duration = self.last_update.elapsed().as_secs_f32();
@@ -160,7 +160,8 @@ impl DemoProgram {
         uniforms_bind_group_layout: &wgpu::BindGroupLayout,
     ) -> Result<wgpu::RenderPipeline, ProgramError> {
         let shader_path = "draw.wgsl";
-        let shader = Shader::load(shader_path);
+        // let shader_path = "test_preprocessor/draw.wgsl"; // uncomment to test preprocessor
+        let shader = ShaderBuilder::build(shader_path);
 
         // device.create_shader_module panics if the shader is malformed
         // only check this on native debug builds.

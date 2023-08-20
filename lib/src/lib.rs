@@ -5,9 +5,10 @@
 
 pub mod demo;
 mod frame_rate;
-pub mod helpers;
 mod pass;
 pub mod program;
+pub mod reload_flags;
+mod shader_builder;
 
 use crate::program::{Program, ProgramError};
 

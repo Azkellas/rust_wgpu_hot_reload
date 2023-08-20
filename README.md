@@ -39,6 +39,13 @@ Finally run a web server locally inside the `target/generated` directory to see 
 `ruby -run -e httpd -p 8000 target/generated`.
 Python's debug server (`python -m http.server target/generated`) may have issues with MIME types causing failures.
 
+## Wgsl preprocessing
+This project contains a small homemade preprocessor for wgsl files.
+It currently allows to include other files by using `#import "path/to/file.wgsl"` in your shader files.
+
+This syntax follows the bevy preprocessor syntax, which is roughly supported by wgsl-analyzer.
+
+
 ## Troubleshooting
 - Since the wasm and native targets use different flags, switching from one target takes time. Be careful
 to set rust-analyzer to the same target you're building to, otherwise they will compete against each other

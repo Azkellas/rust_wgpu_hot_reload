@@ -30,7 +30,7 @@ use std::path::Path;
 #[cfg(all(debug_assertions, not(target_arch = "wasm32")))]
 fn watch<P: AsRef<Path>>(
     path: P,
-    data: Arc<Mutex<lib::helpers::ReloadFlags>>,
+    data: Arc<Mutex<lib::reload_flags::ReloadFlags>>,
 ) -> notify::Result<()> {
     let (tx, rx) = std::sync::mpsc::channel();
 
@@ -61,9 +61,9 @@ fn watch<P: AsRef<Path>>(
 
 /// App entry point.
 fn main() {
-    let data = Arc::new(Mutex::new(lib::helpers::ReloadFlags {
+    let data = Arc::new(Mutex::new(lib::reload_flags::ReloadFlags {
         shaders: vec![],
-        lib: lib::helpers::LibState::Stable,
+        lib: lib::reload_flags::LibState::Stable,
     }));
 
     #[cfg(all(debug_assertions, not(target_arch = "wasm32")))]
@@ -90,7 +90,7 @@ fn main() {
                 library_bridge::subscribe().wait_for_about_to_reload();
                 // update lib state to reloading.
                 let mut data = data.lock().unwrap();
-                data.lib = lib::helpers::LibState::Reloading;
+                data.lib = lib::reload_flags::LibState::Reloading;
             }
 
             // allow reload.
@@ -98,9 +98,9 @@ fn main() {
                 library_bridge::subscribe().wait_for_reload();
                 // update lib state to reloaded.
                 let mut data = data.lock().unwrap();
-                data.lib = lib::helpers::LibState::Reloaded;
-                println!(
-                    "... library has been reloaded {} times",
+                data.lib = lib::reload_flags::LibState::Reloaded;
+                log::info!(
+                    "Rust lib has been reloaded {} times",
                     library_bridge::version()
                 );
             }

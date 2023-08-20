@@ -18,7 +18,7 @@ use crate::hot_lib::library_bridge;
 async fn run(
     event_loop: EventLoop<()>,
     window: Rc<Window>,
-    data: Arc<Mutex<lib::helpers::ReloadFlags>>,
+    data: Arc<Mutex<lib::reload_flags::ReloadFlags>>,
 ) {
     // Create the instance and surface.
     let instance = wgpu::Instance::default();
@@ -129,7 +129,7 @@ async fn run(
                 }
 
                 // Rebuild render pipeline if needed
-                if data.lib == lib::helpers::LibState::Reloaded {
+                if data.lib == lib::reload_flags::LibState::Reloaded {
                     log::info!("reload lib");
                     if let Err(program_error) = library_bridge::update_program_passes(
                         &mut program,

@@ -2,8 +2,8 @@
 #[cfg(feature = "reload")]
 #[hot_lib_reloader::hot_module(dylib = "lib")]
 pub mod library_bridge {
-    pub use lib::helpers::{LibState, ReloadFlags};
     pub use lib::program::{Program, ProgramError};
+    pub use lib::reload_flags::{LibState, ReloadFlags};
     pub use lib::CurrentProgram;
 
     // Specific hot reload helpers.
@@ -21,8 +21,8 @@ pub mod library_bridge {
 /// Library bridge when rust reload is disabled.
 #[cfg(not(feature = "reload"))]
 pub mod library_bridge {
-    pub use lib::helpers::{LibState, ReloadFlags};
     pub use lib::program::{Program, ProgramError};
+    pub use lib::reload_flags::{LibState, ReloadFlags};
     pub use lib::CurrentProgram;
 
     // Include lib file directly since it is not done via the hot-reload module.
