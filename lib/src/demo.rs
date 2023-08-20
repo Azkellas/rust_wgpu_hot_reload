@@ -163,11 +163,18 @@ impl DemoProgram {
         let shader = Shader::load(shader_path);
 
         // device.create_shader_module panics if the shader is malformed
+        // only check this on native debug builds.
+        #[cfg(all(debug_assertions, not(target_arch = "wasm32")))]
         device.push_error_scope(wgpu::ErrorFilter::Validation);
+
         let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
             label: Some("draw.wgsl"),
             source: wgpu::ShaderSource::Wgsl(Cow::Borrowed(shader.as_str())),
         });
+
+        // device.create_shader_module panics if the shader is malformed
+        // only check this on native debug builds.
+        #[cfg(all(debug_assertions, not(target_arch = "wasm32")))]
         if let Some(error) = pollster::block_on(device.pop_error_scope()) {
             log::error!("{}", error);
             // redundant, naga already logs the error.

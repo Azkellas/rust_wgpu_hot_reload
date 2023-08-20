@@ -18,19 +18,16 @@ use std::sync::{Arc, Mutex};
 #[cfg(feature = "reload")]
 use crate::hot_lib::library_bridge;
 
-#[cfg(not(target_arch = "wasm32"))]
-#[cfg(debug_assertions)]
+#[cfg(all(debug_assertions, not(target_arch = "wasm32")))]
 use notify::{Config, RecommendedWatcher, RecursiveMode, Watcher};
 
-#[cfg(not(target_arch = "wasm32"))]
-#[cfg(debug_assertions)]
+#[cfg(all(debug_assertions, not(target_arch = "wasm32")))]
 use std::path::Path;
 
 /// Watch shader folder. Only done in native debug mode.
 /// Everytime a shader is modified/added/deleted,
 /// it will update the `ReloadFlags` so the program can reload them.
-#[cfg(not(target_arch = "wasm32"))]
-#[cfg(debug_assertions)]
+#[cfg(all(debug_assertions, not(target_arch = "wasm32")))]
 fn watch<P: AsRef<Path>>(
     path: P,
     data: Arc<Mutex<lib::helpers::ReloadFlags>>,
@@ -69,8 +66,7 @@ fn main() {
         lib: lib::helpers::LibState::Stable,
     }));
 
-    #[cfg(not(target_arch = "wasm32"))]
-    #[cfg(debug_assertions)]
+    #[cfg(all(debug_assertions, not(target_arch = "wasm32")))]
     {
         // Watch shaders folder.
         // When a shader is saved, the pipeline will be recreated.
