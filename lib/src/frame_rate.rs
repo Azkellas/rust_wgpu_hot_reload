@@ -1,31 +1,29 @@
-use std::collections::VecDeque;
-
 /// Sliding window to give a smooth framerate.
 /// Sum the last `window_size` `frame_duration` to estimate the framerate.
+/// Implemented with a circular buffer.
 #[derive(Debug)]
 pub struct FrameRate {
-    /// Size of the sliding window.
-    window_size: usize,
     /// Store the last frame durations.
-    window: VecDeque<f32>,
+    window: Vec<f32>,
+    /// Index of the oldest frame duration,
+    /// next frame duration will be stored here.
+    current_index: usize,
 }
 
 impl FrameRate {
     /// Create a new slicing window with the given size.
-    pub const fn new(window_size: usize) -> Self {
+    pub fn new(window_size: usize) -> Self {
         Self {
-            window_size,
-            window: VecDeque::new(),
+            current_index: 0,
+            window: vec![0.0; window_size],
         }
     }
 
-    /// Add the latest `frame_duration` to the window.
-    /// Drop the oldest frame duration if needed.
+    /// Add the latest `frame_duration` to the window
+    /// by remplacing the oldest `frame_duration`.
     pub fn update(&mut self, frame_duration: f32) {
-        self.window.push_back(frame_duration);
-        if self.window.len() > self.window_size {
-            self.window.pop_front();
-        }
+        self.window[self.current_index] = frame_duration;
+        self.current_index = (self.current_index + 1) % self.window.len();
     }
 
     /// Compute current `frame_rate`
@@ -33,7 +31,7 @@ impl FrameRate {
     /// The number of frame per seconds is `1 / sum(window) / window_size`
     /// ie `window_size / sum(window)`
     pub fn get(&self) -> f32 {
-        self.window_size as f32 / self.window.iter().sum::<f32>()
+        self.window.len() as f32 / self.window.iter().sum::<f32>()
     }
 }
 
