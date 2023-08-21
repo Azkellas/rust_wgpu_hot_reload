@@ -1,59 +1,122 @@
 # Rust WGPU hot-reload
 
-![Demo](demo.gif)
+https://github.com/Azkellas/rust_wgpu_hot_reload/assets/29731210/49643bd5-b56c-460e-940f-13d498e1533e
 
-Hot reload both shaders and Rust code while developing a WGPU application.
+Hot reload both shaders and rust code while developing a WGPU application with [egui](https://github.com/emilk/egui) integration.
 
-## How to use
+Package a single binary/wasm for native and web targets.
 
-The project is divided in two crates: `lib` and `src`. `lib` is built as a dll and reloaded at runtime.
-Entry point functions should be written in `lib.rs`, be public and have the `#[no_mangle]` attribute to be hot-reloadable.
-Then each include to the lib should be done via the module `hot_lib::library_bridge`.
+---
 
-## Running the project
+### Features
 
-- To run native release, run `cargo run --release`
-- To run native debug with shader hot reload only, run `cargo run`
-- To run native debug with shader and rust hot reload, run `cargo run --features reload` in one terminal and `cargo watch -w lib -x "rustc --crate-type=dylib -p lib"` in another terminal. Alternatively, use [cargo-runcc](https://crates.io/crates/runcc) [cargo-watch](https://github.com/watchexec/cargo-watch) and `cargo runcc -c runcc.yml` to run both commands at the same time.
-- To run wasm build, see below.
+- build to native and wasm
+- hot reload shader (instant), embed shader files in release and wasm builds
+- hot reload rust (~4sec to rebuild and relink library)
+- hot reload ui with [egui](https://github.com/emilk/egui) integration
+- shader preprocessor
+  - `#import "file.wgsl"`
 
-## Building for the web
+---
 
-First install the version of wasm-bindgen-cli that matches the version used by wgpu:
-`cargo install -f wasm-bindgen-cli --version 0.2.87`
+### Running the project
 
-Then build the example for wasm32-unknown-unknown and run `wasm-bindgen` on the output:
-`RUSTFLAGS=--cfg=web_sys_unstable_apis cargo build --target wasm32-unknown-unknown`
+To have both shader and rust hot reload, run:
+  - `cargo run --features reload` in one terminal
+  - `cargo watch -w lib -x "rustc --crate-type=dylib -p lib"` in another terminal. (requires [cargo-watch](https://github.com/watchexec/cargo-watch))
 
-And generate wasm bindings:
-`wasm-bindgen --out-dir target/generated --web target/wasm32-unknown-unknown/debug/wgpu-hot-reload.wasm`
+Alternatively use `cargo runcc -c runcc.yml` to run both commands at the same time. (requires [cargo-runcc](https://crates.io/crates/runcc))
 
-As of 2023-08-14, wegbpu is available in chromium-based browsers and in firefox nightly behind a flag. See [webgpu.io](https://webgpu.io) for up to date browser implementation status. If WebGL2 is not enough and you need WebGPU, you need to add the flag `RUSTFLAGS=--cfg=web_sys_unstable_apis` before compiling.
+You can also run `cargo run` if you only care about shader hot reloading. 
+
+`cargo run --release` as usual to build a single executable for your native target. For `wasm` builds, see below.
+
+---
+
+### Building for the web
+
+```sh
+# First install the version of wasm-bindgen-cli that matches the version used by wgpu:
+cargo install -f wasm-bindgen-cli --version 0.2.87
+
+# If needed, add the wasm32 target toolchain
+rustup target add wasm32-unknown-unknown
+
+# Then build the demo for `wasm32-unknown-unknown`
+cargo build --target wasm32-unknown-unknown
+
+# And generate wasm bindings:
+wasm-bindgen --out-dir target/generated --web target/wasm32-unknown-unknown/debug/wgpu-hot-reload.wasm
+
+# Copy the index.html in `target/generated`
+cp index.html target/generated
+```
+
+Lastly, run a web server locally inside the `target/generated` directory to see the project in the browser.
+Examples of servers are rust's
+[`simple-http-server target/generated`](https://crates.io/crates/simple-http-server) and 
+[`miniserve target/generated`](https://crates.io/crates/miniserve).
 
 
-Copy the `index.html` file in `target/generated` directory and add the following code:
+> Note: as of 2023-08-14, wegbpu is available in chromium-based browsers and in firefox nightly behind a flag. See [webgpu.io](https://webgpu.io) for up to date browser implementation status. If WebGL2 is not enough and you need WebGPU, you need to add the flag `RUSTFLAGS=--cfg=web_sys_unstable_apis` before compiling.
 
-Finally run a web server locally inside the `target/generated` directory to see the project in the browser. Examples of servers are rust's
-[`simple-http-server target/generated`](https://crates.io/crates/simple-http-server),
-[`miniserve target/generated`](https://crates.io/crates/miniserve), or other languages
-`ruby -run -e httpd -p 8000 target/generated`.
-Python's debug server (`python -m http.server target/generated`) may have issues with MIME types causing failures.
+---
 
-## Wgsl preprocessing
+### Wgsl preprocessing
+
 This project contains a small homemade preprocessor for wgsl files.
 It currently allows to include other files by using `#import "path/to/file.wgsl"` in your shader files.
 
 This syntax follows the bevy preprocessor syntax, which is roughly supported by wgsl-analyzer.
 
+--- 
 
-## Troubleshooting
-- Since the wasm and native targets use different flags, switching from one target takes time. Be careful
-to set rust-analyzer to the same target you're building to, otherwise they will compete against each other
-and create a lot of unnecessary recompiling.
-- Starting the hot-reload mode with runcc can sometimes crash when lib is too slow to compile, in which case you should just have to restart it.
-- wgpu does not use the idiomatic rust way `Error` to handle errors. See [here](https://github.com/gfx-rs/wgpu/issues/3767) for more info, or have a look at `DemoProgram::create_render_pipeline` to see an example.
+### Using the template
 
-## References:
-- See [hot-lib-reloader-rs](https://github.com/rksm/hot-lib-reloader-rs) for more information about hot reloading Rust code
+The project comes with a `Program` trait. Hopefully it should be enough for your needs. You just need to replace the current implementation with yours in `lib/lib.rs`: `pub use crate::demo::DemoProgram as CurrentProgram;`.
+
+
+---
+
+### Project architecture
+
+The project is divided in two crates: `lib` and `src`.
+
+`src` should only contain the minimal code necessary to start the application and the windowing system,
+allowing a maximum of code to be hot-reloaded in `lib` which is built as a dynamic library and reloaded at runtime whenever changes are saved.
+
+Entry point functions should be written in `lib/src/lib.rs`, be public and have the `#[no_mangle]` attribute to be hot-reloadable.
+Note that they cannot be generic. Example:
+
+```rust
+#[no_mangle]
+pub fn get_program_name(program: &CurrentProgram) -> String {
+    program.get_name().to_owned()
+}
+```
+
+Then each use of the `lib` in `src` should be done via the module `hot_lib::library_bridge` that makes the bridge between the binary and the dynamic library.
+
+See [hot-lib-reloader-rs](https://github.com/rksm/hot-lib-reloader-rs) for more information about hot reloading Rust code and its limitations.
+
+
+---
+
+### Troubleshooting
+
+- Since the wasm and native targets use different flags, switching from one target to the other takes time as many dependencies need to be rebuilt.
+Be careful to set rust-analyzer to the same target you're building to, otherwise they will compete against each other and create a lot of unnecessary recompiling.
+
+- Rust requires the dylib to be present at compile time to link, so starting the hot-reload mode with runcc can crash if the bin finishes compiling when the no dll/so is present yet.
+In which case you just have to let the library finish building in dynamic mode and restart runcc.
+
+- wgpu does not use the idiomatic rust way `Error` to handle errors. See [here](https://github.com/gfx-rs/wgpu/issues/3767) for more info, or have a look at `shader_build.rs::tests::test_shader_builder` for an example.
+
+---
+
+### References:
+
+- [hot-lib-reloader-rs](https://github.com/rksm/hot-lib-reloader-rs)
 - [wgpu](https://github.com/gfx-rs/wgpu) and its [boids](https://github.com/gfx-rs/wgpu/tree/trunk/examples/boids) example
 - [learn-wgpu](https://sotrh.github.io/learn-wgpu/)
+- [egui](https://github.com/emilk/egui)
