@@ -62,3 +62,50 @@ impl ShaderBuilder {
             .collect()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::borrow::Cow;
+
+    #[test]
+    fn test_shader_builder() {
+        // build shader.
+        let shader = ShaderBuilder::build("test_preprocessor/draw.wgsl");
+
+        // make sure it has everything required.
+        assert!(shader.contains("@vertex"));
+        assert!(shader.contains("@fragment"));
+        assert!(shader.contains("@group(0) @binding(0)"));
+
+        // make sure it compiles.
+        // note: heavy setup, does wgpu provide a simpler way to test?
+        let instance = wgpu::Instance::default();
+        let adapter = pollster::block_on(wgpu::util::initialize_adapter_from_env_or_default(
+            &instance, None,
+        ))
+        .unwrap();
+
+        let (device, _) = pollster::block_on(adapter.request_device(
+            &wgpu::DeviceDescriptor {
+                label: None,
+                features: wgpu::Features::empty(),
+                // Make sure we use the texture resolution limits from the adapter, so we can support images the size of the swapchain.
+                limits:
+                    wgpu::Limits::downlevel_webgl2_defaults().using_resolution(adapter.limits()),
+            },
+            None,
+        ))
+        .unwrap();
+
+        device.push_error_scope(wgpu::ErrorFilter::Validation);
+
+        device.create_shader_module(wgpu::ShaderModuleDescriptor {
+            label: None,
+            source: wgpu::ShaderSource::Wgsl(Cow::Borrowed(shader.as_str())),
+        });
+
+        // Make sure the compilation didn't return any error.
+        assert!(pollster::block_on(device.pop_error_scope()).is_none());
+    }
+}
