@@ -69,6 +69,7 @@ mod tests {
     use std::borrow::Cow;
 
     #[test]
+    #[ignore] // this test require a gpu, ignored by default since it is slow and github actions do not provide a gpu.
     fn test_shader_builder() {
         // build shader.
         let shader = ShaderBuilder::build("test_preprocessor/draw.wgsl");
