@@ -1,5 +1,7 @@
 use rust_embed::RustEmbed;
 
+use crate::program::ProgramError;
+
 /// Shader helpers
 /// Will load from file in native debug mode to allow reloading at runtime
 /// and embed in binary in wasm/release mode.
@@ -8,22 +10,28 @@ use rust_embed::RustEmbed;
 pub struct ShaderBuilder;
 
 impl ShaderBuilder {
-    /// Load a shader file. Will crash if the file does not exist.
+    /// Load a shader file.
     /// Does not do any pre-processing here, but returns the raw content.
-    pub fn load(name: &str) -> String {
-        std::str::from_utf8(
-            Self::get(name)
-                .unwrap_or_else(|| panic!("Could not load shader file: {name}"))
-                .data
-                .as_ref(),
-        )
-        .expect("Shader file is not a valid utf8.")
-        .to_owned()
+    pub fn load(name: &str) -> Result<String, ProgramError> {
+        // read file.
+        Self::get(name)
+            // convert to ProgramError if file not found.
+            .ok_or(ProgramError::ShaderNotFound(format!(
+                "Could not load shader file: {name}"
+            )))
+            // Try parsing to utf8.
+            .and_then(|file| {
+                std::str::from_utf8(file.data.as_ref())
+                    .map(str::to_owned)
+                    .or(Err(ProgramError::ShaderNotFound(format!(
+                        "Shader file {name} is not a valid utf8."
+                    ))))
+            })
     }
 
     /// Build a shader file by importing all its dependencies.
     /// todo: Add #ifdef #else #endif #ifndef support.
-    pub fn build(name: &str) -> String {
+    pub fn build(name: &str) -> Result<String, ProgramError> {
         Self::build_with_seen(name, &mut vec![])
     }
 
@@ -33,14 +41,15 @@ impl ShaderBuilder {
     /// so we don't need to sort the imports depending on their dependencies.
     /// However we cannot define the same symbol twice, so we need to make sure
     /// we do not import the same file twice.
-    fn build_with_seen(name: &str, seen: &mut Vec<String>) -> String {
-        if seen.contains(&name.to_owned()) {
-            return "".to_owned();
+    fn build_with_seen(name: &str, seen: &mut Vec<String>) -> Result<String, ProgramError> {
+        // File was already included, return empty string.
+        let owned_name = name.to_owned();
+        if seen.contains(&owned_name) {
+            return Ok("".to_owned());
         }
+        seen.push(owned_name);
 
-        seen.push(name.to_owned());
-
-        Self::load(name)
+        Self::load(name)?
             .lines()
             .map(|line| {
                 // example of valid import: #import "common.wgsl"
@@ -52,14 +61,14 @@ impl ShaderBuilder {
                         .split('"')
                         .nth(1)
                         .expect("Invalid import syntax: expected #import \"file\"");
-                    let include_content = Self::build_with_seen(include, seen);
-                    // We keep but comment the import for debugging purposes.
-                    format!("//{line}\n {include_content}")
+                    let include_content = Self::build_with_seen(include, seen)?;
+                    // We keep the import commented for debugging purposes.
+                    Ok(format!("//{line}\n {include_content}"))
                 } else {
-                    line.to_owned() + "\n"
+                    Ok(line.to_owned() + "\n")
                 }
             })
-            .collect()
+            .collect::<Result<String, ProgramError>>()
     }
 }
 
@@ -70,9 +79,9 @@ mod tests {
 
     #[test]
     #[ignore] // this test require a gpu, ignored by default since it is slow and github actions do not provide a gpu.
-    fn test_shader_builder() {
+    fn test_shader_builder() -> Result<(), ProgramError> {
         // build shader.
-        let shader = ShaderBuilder::build("test_preprocessor/draw.wgsl");
+        let shader = ShaderBuilder::build("test_preprocessor/draw.wgsl")?;
 
         // make sure it has everything required.
         assert!(shader.contains("@vertex"));
@@ -108,5 +117,7 @@ mod tests {
 
         // Make sure the compilation didn't return any error.
         assert!(pollster::block_on(device.pop_error_scope()).is_none());
+
+        Ok(())
     }
 }

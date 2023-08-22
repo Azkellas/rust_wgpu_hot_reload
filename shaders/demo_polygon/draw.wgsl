@@ -47,7 +47,12 @@ fn vs_main(@builtin(vertex_index) in_vertex_index: u32) -> VertexOutput {
     }
 
     // assign a gradient dependant of the vertex id.
-    out.color = vec4<f32>((cos(vertex_angle) + 1.0) / 2.0, 0.0, (sin(vertex_angle) + 1.0) / 2.0, 1.0);
+    out.color = vec4<f32>(
+        (cos(vertex_angle) + 1.0) / 2.0,
+        0.0,
+        (sin(vertex_angle) + 1.0) / 2.0,
+        1.0
+    );
 
     return out;
 }

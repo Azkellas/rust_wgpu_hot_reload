@@ -5,6 +5,7 @@ pub enum ProgramError {
     /// This encapsulate naga::front::wgsl::ParseError that is not available in wasm it seems.
     /// The output is the same minus the colors.
     ShaderParseError(String),
+    ShaderNotFound(String),
 }
 
 impl fmt::Display for ProgramError {
@@ -14,6 +15,9 @@ impl fmt::Display for ProgramError {
             Self::ShaderParseError(message) => {
                 writeln!(f, "Shader parse Error:")?;
                 writeln!(f, "{message}")?;
+            }
+            Self::ShaderNotFound(message) => {
+                writeln!(f, "Shader not found: {message}")?;
             }
         }
         Ok(())

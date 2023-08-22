@@ -11,7 +11,7 @@ use crate::shader_builder::ShaderBuilder;
 /// `polygon_edge_count` is not exposed in ui on purpose for demo purposes
 /// change it in the code with hot-reload enable to see it working.
 #[derive(Clone, Copy, Debug)]
-pub struct DemoSettings {
+pub struct DemoPolygonSettings {
     /// polygon radius in window, between 0 and 1
     polygon_size: f32, // exposed in ui
     /// regular polygon edge count, expected to be 3 or more
@@ -25,16 +25,16 @@ pub struct DemoSettings {
 ///     rust: `polygon_edge_count` in `DemoProgram::update`
 ///     ui: `size` and `speed`
 #[derive(Debug)]
-pub struct DemoProgram {
+pub struct DemoPolygonProgram {
     render_pass: Pass,
     _start_time: instant::Instant, // std::time::Instant is not compatible with wasm
     last_update: instant::Instant,
-    settings: DemoSettings,
+    settings: DemoPolygonSettings,
     elapsed: f32, // elapsed take the speed into consideration
     frame_rate: FrameRate,
 }
 
-impl Program for DemoProgram {
+impl Program for DemoPolygonProgram {
     /// Create program.
     /// Assume the `render_pipeline` will be properly initialized.
     fn init(
@@ -48,7 +48,7 @@ impl Program for DemoProgram {
             render_pass,
             _start_time: instant::Instant::now(),
             last_update: instant::Instant::now(),
-            settings: DemoSettings {
+            settings: DemoPolygonSettings {
                 polygon_size: 0.5,
                 polygon_edge_count: 3,
                 speed: 1.0,
@@ -60,7 +60,7 @@ impl Program for DemoProgram {
 
     /// Get program name.
     fn get_name(&self) -> &'static str {
-        "Demo triangle"
+        "Demo polygon"
     }
 
     /// Recreate render pass.
@@ -87,7 +87,7 @@ impl Program for DemoProgram {
     fn update(&mut self, queue: &wgpu::Queue) {
         // Set the edge count of the regular polygon.
         // This is not exposed in the ui on purpose to demonstrate the rust hot reload.
-        self.settings.polygon_edge_count = 7;
+        self.settings.polygon_edge_count = 15;
 
         // update elapsed time, taking speed into consideration.
         let last_frame_duration = self.last_update.elapsed().as_secs_f32();
@@ -149,7 +149,7 @@ impl Program for DemoProgram {
     }
 }
 
-impl DemoProgram {
+impl DemoPolygonProgram {
     /// Create render pipeline.
     /// In debug mode it will return a `ProgramError` if it failed compiling a shader
     /// In release/wasm, il will crash since wgpu does not return errors in such situations.
@@ -159,9 +159,9 @@ impl DemoProgram {
         adapter: &wgpu::Adapter,
         uniforms_bind_group_layout: &wgpu::BindGroupLayout,
     ) -> Result<wgpu::RenderPipeline, ProgramError> {
-        let shader_path = "draw.wgsl";
+        let shader_path = "demo_polygon/draw.wgsl";
         // let shader_path = "test_preprocessor/draw.wgsl"; // uncomment to test preprocessor
-        let shader = ShaderBuilder::build(shader_path);
+        let shader = ShaderBuilder::build(shader_path)?;
 
         // device.create_shader_module panics if the shader is malformed
         // only check this on native debug builds.

@@ -3,7 +3,7 @@
 //! To avoid name clashes, the functions in this file
 //! should not share names with other functions in the library.
 
-pub mod demo;
+pub mod demo_polygon;
 mod frame_rate;
 mod pass;
 pub mod program;
@@ -14,7 +14,7 @@ use crate::program::{Program, ProgramError};
 
 /// Specify which program we want to run here.
 /// This should also be specified in `src/hot_lib.rs`
-pub use crate::demo::DemoProgram as CurrentProgram;
+pub use crate::demo_polygon::DemoPolygonProgram as CurrentProgram;
 
 /// Hot-reloading does not support generics, so we need to specialize
 /// the functions we want to call from the outside.
@@ -35,7 +35,7 @@ pub fn create_program(
 /// from a dynamic library.
 #[no_mangle]
 pub fn get_program_name(program: &CurrentProgram) -> String {
-    program.get_name().into()
+    program.get_name().to_owned()
 }
 
 /// Resize program. This is called when the main window was resized,
