@@ -2,6 +2,7 @@ struct Uniforms {
   elapsed: f32,
   size: f32,
   edge_count: f32,
+  _padding: f32,  // padding to 16 bytes, required for WebGL.
 };
 
 @group(0) @binding(0)

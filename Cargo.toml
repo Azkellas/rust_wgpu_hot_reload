@@ -16,7 +16,9 @@ members = ["lib"]
 [dependencies]
 lib = { path = "./lib" }
 hot-lib-reloader = { version = "^0.6", optional = true }
-wgpu = "0.17.0"
+
+wgpu = { version = "0.17.0", default-features = false }
+
 winit = "0.28.6"
 env_logger = "0.10.0"
 pollster = "0.3.0"
@@ -32,7 +34,11 @@ wasm-bindgen = "0.2.87"
 # egui-winit = "0.22.0" not compatible with wgpu 0.17 yet
 
 [features]
+webgl = ["wgpu/webgl", "lib/webgl"]
+wgsl = ["wgpu/wgsl", "lib/wgsl"]
+default = ["wgsl"]
 reload = ["dep:hot-lib-reloader"]
+
 
 [profile.dev]
 opt-level = 0

@@ -87,7 +87,7 @@ impl Program for DemoPolygonProgram {
     fn update(&mut self, queue: &wgpu::Queue) {
         // Set the edge count of the regular polygon.
         // This is not exposed in the ui on purpose to demonstrate the rust hot reload.
-        self.settings.polygon_edge_count = 15;
+        self.settings.polygon_edge_count = 7;
 
         // update elapsed time, taking speed into consideration.
         let last_frame_duration = self.last_update.elapsed().as_secs_f32();
@@ -101,6 +101,7 @@ impl Program for DemoPolygonProgram {
                 self.elapsed,
                 self.settings.polygon_size,
                 self.settings.polygon_edge_count as f32,
+                0.0,
             ]),
         );
     }

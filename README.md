@@ -35,6 +35,11 @@ You can also run `cargo run` if you only care about shader hot reloading.
 
 ### Building for the web
 
+By default, this project export with wgsl backend, which is not yet supported by all browsers.
+As such, you have two options:
+- export with webgl backend, to ensure compatibility with all browsers (might not be possible depending on your project)
+- export with wgsl backend by enabling unstable apis. Works in chromium-based browsers and firefox nightly behind a flag as of 2023-08-22. See [webgpu.io](https://webgpu.io) for up to date browser implementation status.
+
 ```sh
 # First install the version of wasm-bindgen-cli that matches the version used by wgpu:
 cargo install -f wasm-bindgen-cli --version 0.2.87
@@ -42,8 +47,10 @@ cargo install -f wasm-bindgen-cli --version 0.2.87
 # If needed, add the wasm32 target toolchain
 rustup target add wasm32-unknown-unknown
 
-# Then build the demo for `wasm32-unknown-unknown`
-cargo build --target wasm32-unknown-unknown
+# Then build the demo for `wasm32-unknown-unknown` with webgl backend:
+cargo build --target wasm32-unknown-unknown --features webgl
+# Or if you need wgsl backend:
+RUSTFLAGS=--cfg=web_sys_unstable_apis cargo build --target wasm32-unknown-unknown
 
 # And generate wasm bindings:
 wasm-bindgen --out-dir target/generated --web target/wasm32-unknown-unknown/debug/wgpu-hot-reload.wasm
@@ -57,8 +64,8 @@ Examples of servers are rust's
 [`simple-http-server target/generated`](https://crates.io/crates/simple-http-server) and 
 [`miniserve target/generated`](https://crates.io/crates/miniserve).
 
+> Note that you can set `RUSTFLAGS` in `.cargo/config.toml` to avoid having to type it every time. The env variable takes predominance on the config file.
 
-> Note: as of 2023-08-14, wegbpu is available in chromium-based browsers and in firefox nightly behind a flag. See [webgpu.io](https://webgpu.io) for up to date browser implementation status. If WebGL2 is not enough and you need WebGPU, you need to add the flag `RUSTFLAGS=--cfg=web_sys_unstable_apis` before compiling.
 
 ---
 
