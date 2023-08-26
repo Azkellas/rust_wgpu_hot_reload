@@ -4,12 +4,12 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-wgpu = { version = "0.17.0", default-features = false }
-egui = { git = "https://github.com/emilk/egui.git", rev = "b896d641c578c04603adf07a9350b8bfc3c7ed9f" }
+wgpu.workspace = true
+egui.workspace = true
+pollster.workspace = true
+log.workspace = true
 bytemuck = "1.13.1"
 instant = "0.1.12"
-pollster = "0.3.0"
-log = "0.4.19"
 
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
 rust-embed = "8.0.0" # Enable shader hot reload for native compilation.
