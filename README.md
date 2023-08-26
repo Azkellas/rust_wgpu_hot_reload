@@ -117,7 +117,7 @@ Be careful to set rust-analyzer to the same target you're building to, otherwise
 - Rust requires the dylib to be present at compile time to link, so starting the hot-reload mode with runcc can crash if the bin finishes compiling when the no dll/so is present yet.
 In which case you just have to let the library finish building in dynamic mode and restart runcc.
 
-- wgpu does not use the idiomatic rust way `Error` to handle errors. See [here](https://github.com/gfx-rs/wgpu/issues/3767) for more info, or have a look at `shader_build.rs::tests::test_shader_builder` for an example.
+- wgpu does not use the idiomatic rust way `Error` to handle errors. See [here](https://github.com/gfx-rs/wgpu/issues/3767) for more info, or have a look at `shader_build.rs::ShaderBuilder::create_module` for an example.
 
 ---
 

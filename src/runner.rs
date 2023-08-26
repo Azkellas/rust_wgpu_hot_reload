@@ -179,9 +179,15 @@ async fn run(
                 // Render a frame if the lib is stable.
                 if data.lib == library_bridge::LibState::Stable {
                     // Get the next frame and view.
-                    let frame = surface
-                        .get_current_texture()
-                        .expect("Failed to acquire next swap chain texture");
+                    let texture = surface.get_current_texture();
+                    let frame = match texture {
+                        Ok(f) => f,
+                        Err(e) => {
+                            log::warn!("surface lost: window is probably minimized: {e}");
+                            return;
+                        }
+                    };
+
                     let view = frame
                         .texture
                         .create_view(&wgpu::TextureViewDescriptor::default());
