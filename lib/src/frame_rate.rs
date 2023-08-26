@@ -33,6 +33,12 @@ impl FrameRate {
     pub fn get(&self) -> f32 {
         self.window.len() as f32 / self.window.iter().sum::<f32>()
     }
+
+    /// Return current parity of the frame.
+    /// This is useful for ping pong textures or buffers.
+    pub fn get_parity(&self) -> bool {
+        self.current_index % 2 == 0
+    }
 }
 
 impl Default for FrameRate {

@@ -21,7 +21,15 @@ async fn run(
     data: Arc<Mutex<lib::reload_flags::ReloadFlags>>,
 ) {
     // Create the instance and surface.
-    let instance = wgpu::Instance::default();
+    let backends = wgpu::util::backend_bits_from_env().unwrap_or_else(wgpu::Backends::all);
+    let dx12_shader_compiler = wgpu::util::dx12_shader_compiler_from_env().unwrap_or_default();
+
+    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
+        backends,
+        dx12_shader_compiler,
+    });
+
+    // let instance = wgpu::Instance::default();
     let surface = unsafe { instance.create_surface(window.as_ref()) }.unwrap();
 
     // Select an adapter and a surface configuration.
@@ -29,21 +37,47 @@ async fn run(
         .await
         .expect("No suitable GPU adapters found on the system!");
 
-    // Create the logical device and command queue
+    let optional_features = library_bridge::program_optional_features();
+    let required_features = library_bridge::program_required_features();
+    let adapter_features = adapter.features();
+    assert!(
+        adapter_features.contains(required_features),
+        "Adapter does not support required features for this example: {:?}",
+        required_features - adapter_features
+    );
+
+    let required_downlevel_capabilities = library_bridge::program_required_downlevel_capabilities();
+    let downlevel_capabilities = adapter.get_downlevel_capabilities();
+    assert!(
+        downlevel_capabilities.shader_model >= required_downlevel_capabilities.shader_model,
+        "Adapter does not support the minimum shader model required to run this example: {:?}",
+        required_downlevel_capabilities.shader_model
+    );
+    assert!(
+        downlevel_capabilities
+            .flags
+            .contains(required_downlevel_capabilities.flags),
+        "Adapter does not support the downlevel capabilities required to run this example: {:?}",
+        required_downlevel_capabilities.flags - downlevel_capabilities.flags
+    );
+
+    // Make sure we use the texture resolution limits from the adapter, so we can support images the size of the surface.
+    let needed_limits =
+        library_bridge::program_required_limits().using_resolution(adapter.limits());
+
     let trace_dir = std::env::var("WGPU_TRACE");
+    // Create the logical device and command queue
     let (device, queue) = adapter
         .request_device(
             &wgpu::DeviceDescriptor {
                 label: None,
-                features: wgpu::Features::empty(),
-                // Make sure we use the texture resolution limits from the adapter, so we can support images the size of the swapchain.
-                limits: wgpu::Limits::downlevel_webgl2_defaults()
-                    .using_resolution(adapter.limits()),
+                features: (optional_features & adapter_features) | required_features,
+                limits: needed_limits,
             },
             trace_dir.ok().as_ref().map(std::path::Path::new),
         )
         .await
-        .expect("Failed to create device");
+        .expect("Unable to find a suitable GPU adapter!");
 
     // Configure surface.
     let size = window.inner_size();

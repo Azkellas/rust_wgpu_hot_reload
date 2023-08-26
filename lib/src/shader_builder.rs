@@ -1,5 +1,7 @@
 use rust_embed::RustEmbed;
 
+use std::borrow::Cow;
+
 use crate::program::ProgramError;
 
 /// Shader helpers
@@ -33,6 +35,35 @@ impl ShaderBuilder {
     /// todo: Add #ifdef #else #endif #ifndef support.
     pub fn build(name: &str) -> Result<String, ProgramError> {
         Self::build_with_seen(name, &mut vec![])
+    }
+
+    /// Create a shader module from a shader file.
+    pub fn create_module(
+        device: &wgpu::Device,
+        name: &str,
+    ) -> Result<wgpu::ShaderModule, ProgramError> {
+        let shader = ShaderBuilder::build(name)?;
+
+        // device.create_shader_module panics if the shader is malformed
+        // only check this on native debug builds.
+        #[cfg(all(debug_assertions, not(target_arch = "wasm32")))]
+        device.push_error_scope(wgpu::ErrorFilter::Validation);
+
+        let module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+            label: Some(name),
+            source: wgpu::ShaderSource::Wgsl(Cow::Borrowed(shader.as_str())),
+        });
+
+        // device.create_shader_module panics if the shader is malformed
+        // only check this on native debug builds.
+        #[cfg(all(debug_assertions, not(target_arch = "wasm32")))]
+        if let Some(error) = pollster::block_on(device.pop_error_scope()) {
+            log::error!("{name}: {}", error);
+            // redundant, naga already logs the error.
+            return Err(ProgramError::ShaderParseError(format!("{error}")));
+        }
+
+        Ok(module)
     }
 
     /// Build a shader file by importing all its dependencies.

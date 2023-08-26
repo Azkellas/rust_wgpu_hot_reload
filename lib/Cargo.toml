@@ -10,6 +10,7 @@ pollster.workspace = true
 log.workspace = true
 bytemuck = "1.13.1"
 instant = "0.1.12"
+nanorand = { version = "0.7", default-features = false, features = ["wyrand"] }
 
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
 rust-embed = "8.0.0" # Enable shader hot reload for native compilation.

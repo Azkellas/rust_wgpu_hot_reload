@@ -1,11 +1,19 @@
-use std::borrow::Cow;
-
 use wgpu::util::DeviceExt;
 
 use crate::frame_rate::FrameRate;
-use crate::pass::Pass;
 use crate::program::{Program, ProgramError};
 use crate::shader_builder::ShaderBuilder;
+
+/// A simple struct to store a wgpu pass with a uniform buffer.
+#[derive(Debug)]
+pub struct Pass {
+    /// Pipeline that will be called to render the pass
+    pub pipeline: wgpu::RenderPipeline,
+    /// Buffer bind group for this pass.
+    pub bind_group: wgpu::BindGroup,
+    /// Single uniform buffer for this pass.
+    pub uniform_buf: wgpu::Buffer,
+}
 
 /// Settings for the `DemoProgram`
 /// `polygon_edge_count` is not exposed in ui on purpose for demo purposes
@@ -146,6 +154,10 @@ impl Program for DemoPolygonProgram {
         ui.add(egui::Slider::new(&mut self.settings.polygon_size, 0.0..=1.0).text("size"));
         ui.add(egui::Slider::new(&mut self.settings.speed, 0.0..=20.0).text("speed"));
         ui.separator();
+        ui.label(std::format!(
+            "edge count: {} (rust only for demo purposes)",
+            self.settings.polygon_edge_count
+        ));
         ui.label(std::format!("framerate: {:.0}fps", self.frame_rate.get()));
     }
 }
@@ -160,31 +172,8 @@ impl DemoPolygonProgram {
         adapter: &wgpu::Adapter,
         uniforms_bind_group_layout: &wgpu::BindGroupLayout,
     ) -> Result<wgpu::RenderPipeline, ProgramError> {
-        let shader_path = "demo_polygon/draw.wgsl";
-        // let shader_path = "test_preprocessor/draw.wgsl"; // uncomment to test preprocessor
-        let shader = ShaderBuilder::build(shader_path)?;
-
-        // device.create_shader_module panics if the shader is malformed
-        // only check this on native debug builds.
-        #[cfg(all(debug_assertions, not(target_arch = "wasm32")))]
-        device.push_error_scope(wgpu::ErrorFilter::Validation);
-
-        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-            label: Some("draw.wgsl"),
-            source: wgpu::ShaderSource::Wgsl(Cow::Borrowed(shader.as_str())),
-        });
-
-        // device.create_shader_module panics if the shader is malformed
-        // only check this on native debug builds.
-        #[cfg(all(debug_assertions, not(target_arch = "wasm32")))]
-        if let Some(error) = pollster::block_on(device.pop_error_scope()) {
-            log::error!("{}", error);
-            // redundant, naga already logs the error.
-            return Err(ProgramError::ShaderParseError(format!(
-                "{}: {}",
-                shader_path, error
-            )));
-        }
+        let shader = ShaderBuilder::create_module(device, "demo_polygon/draw.wgsl")?;
+        // let shader = ShaderBuilder::create_module(device, "test_preprocessor/draw.wgsl")?; // uncomment to test preprocessor
 
         let swapchain_capabilities = surface.get_capabilities(adapter);
         let swapchain_format = swapchain_capabilities.formats[0];

@@ -3,9 +3,10 @@
 //! To avoid name clashes, the functions in this file
 //! should not share names with other functions in the library.
 
+pub mod demo_boids;
 pub mod demo_polygon;
+
 mod frame_rate;
-mod pass;
 pub mod program;
 pub mod reload_flags;
 mod shader_builder;
@@ -14,7 +15,8 @@ use crate::program::{Program, ProgramError};
 
 /// Specify which program we want to run here.
 /// This should also be specified in `src/hot_lib.rs`
-pub use crate::demo_polygon::DemoPolygonProgram as CurrentProgram;
+// pub use crate::demo_polygon::DemoPolygonProgram as CurrentProgram;
+pub use crate::demo_boids::DemoBoidsProgram as CurrentProgram;
 
 /// Hot-reloading does not support generics, so we need to specialize
 /// the functions we want to call from the outside.
@@ -87,4 +89,24 @@ pub fn render_frame(
 #[no_mangle]
 pub fn render_ui(program: &mut CurrentProgram, ui: &mut egui::Ui) {
     program.draw_ui(ui);
+}
+
+#[no_mangle]
+pub fn program_optional_features() -> wgpu::Features {
+    CurrentProgram::optional_features()
+}
+
+#[no_mangle]
+pub fn program_required_features() -> wgpu::Features {
+    CurrentProgram::required_features()
+}
+
+#[no_mangle]
+pub fn program_required_downlevel_capabilities() -> wgpu::DownlevelCapabilities {
+    CurrentProgram::required_downlevel_capabilities()
+}
+
+#[no_mangle]
+pub fn program_required_limits() -> wgpu::Limits {
+    CurrentProgram::required_limits()
 }
