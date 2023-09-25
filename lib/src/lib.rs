@@ -3,8 +3,9 @@
 //! To avoid name clashes, the functions in this file
 //! should not share names with other functions in the library.
 
-pub mod demo_boids;
-pub mod demo_polygon;
+mod demo_boids;
+mod demo_polygon;
+mod demo_raymarching;
 
 mod frame_rate;
 pub mod program;
@@ -14,9 +15,9 @@ mod shader_builder;
 use crate::program::{Program, ProgramError};
 
 /// Specify which program we want to run here.
-/// This should also be specified in `src/hot_lib.rs`
-// pub use crate::demo_polygon::DemoPolygonProgram as CurrentProgram;
-pub use crate::demo_boids::DemoBoidsProgram as CurrentProgram;
+pub use crate::demo_polygon::DemoPolygonProgram as CurrentProgram;
+// pub use crate::demo_boids::DemoBoidsProgram as CurrentProgram;
+// pub use crate::demo_raymarching::DemoRaymarchingProgram as CurrentProgram;
 
 /// Hot-reloading does not support generics, so we need to specialize
 /// the functions we want to call from the outside.

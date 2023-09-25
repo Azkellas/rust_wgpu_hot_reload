@@ -112,7 +112,7 @@ impl Program for DemoBoidsProgram {
             settings,
             compute_pass,
             render_pass,
-            frame_rate: FrameRate::default(),
+            frame_rate: FrameRate::new(500),
             last_update: instant::Instant::now(),
         })
     }

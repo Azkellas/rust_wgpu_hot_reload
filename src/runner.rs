@@ -85,6 +85,9 @@ async fn run(
         .get_default_config(&adapter, size.width, size.height)
         .expect("Surface isn't supported by the adapter.");
 
+    // Comment to disable freerun and enable v-sync.
+    config.present_mode = wgpu::PresentMode::Immediate;
+
     surface.configure(&device, &config);
 
     // Create our program.
