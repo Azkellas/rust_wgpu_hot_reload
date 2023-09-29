@@ -49,7 +49,7 @@ pub struct DemoRaymarchingSettings {
     pub camera: CameraLookAt,
     pub size: [f32; 2],
     pub elapsed: f32,   // elapsed take the speed into consideration
-    _padding: [f32; 3], // padding for alignment
+    _padding: [f32; 2], // padding for alignment
 }
 
 /// Demo raymarching program.
@@ -68,18 +68,13 @@ impl DemoRaymarchingSettings {
     pub fn new() -> Self {
         Self {
             camera: CameraLookAt::default(),
-            size: [0.0, 0.0],
             elapsed: 0.0,
-            _padding: [0.0; 3],
+            size: [0.0, 0.0],
+            _padding: [0.0; 2],
         }
     }
 
     pub fn get_size() -> u64 {
-        dbg!(
-            "DemoRaymarchingSettings::get_size",
-            std::mem::size_of::<Self>(),
-            (bytemuck::cast_slice(&[Self::new()]) as &[u8]).len()
-        );
         std::mem::size_of::<Self>() as _
     }
 }
@@ -215,7 +210,7 @@ impl DemoRaymarchingProgram {
         });
 
         let pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-            label: None,
+            label: Some("Raymarching Render Pipeline"),
             layout: Some(&layout),
             vertex: wgpu::VertexState {
                 module: &shader,

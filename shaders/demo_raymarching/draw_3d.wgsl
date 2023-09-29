@@ -105,7 +105,7 @@ fn sdf_3d(p: vec2<f32>) -> vec4<f32> {
     var time: f32 = uniforms.elapsed;
 
     // camera look at.
-    let look_at: vec3<f32> = uniforms.camera_center;
+    let look_at: vec3<f32> = uniforms.camera_center.xyz;
 
     // compute direction.
     var angle: vec3<f32> = vec3(cos(uniforms.camera_angle), 0.0, sin(uniforms.camera_angle));

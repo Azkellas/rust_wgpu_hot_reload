@@ -9,8 +9,8 @@ use crate::mouse_input::MouseState;
 #[repr(C)]
 #[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct CameraLookAt {
-    // Object the camera is looking at.
-    pub center: [f32; 3],
+    // Object the camera is looking at. Use a vec4 to avoid padding.
+    pub center: [f32; 4],
     // Angle around the object on the horizontal plane, in radians.
     pub angle: f32,
     // Height between -1 and 1, 0 is flat, 1 is zenith, -1 is nadir
@@ -23,7 +23,7 @@ impl Default for CameraLookAt {
     fn default() -> Self {
         // See object in 0,0,0 from the front top left
         CameraLookAt {
-            center: [0.0, 0.0, 0.0],
+            center: [0.0, 0.0, 0.0, 0.0],
             angle: 2.0 * std::f32::consts::FRAC_PI_3,
             height: 0.3,
             distance: f32::sqrt(72.0),
