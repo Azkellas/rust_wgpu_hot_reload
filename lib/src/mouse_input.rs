@@ -46,7 +46,6 @@ impl MouseState {
                 self.position = [position.x as f32, position.y as f32];
             }
             WindowEvent::MouseWheel { delta, .. } => {
-                log::info!("delta: {:?}", delta);
                 match delta {
                     // native mode: line delta should be 1 or -1
                     MouseScrollDelta::LineDelta(_, y) => self.scroll_delta = y,

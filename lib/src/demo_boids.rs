@@ -5,7 +5,6 @@
 // See the README for more details.
 
 use nanorand::{Rng, WyRand};
-use std::mem;
 use wgpu::util::DeviceExt;
 
 use crate::frame_rate::FrameRate;
@@ -28,6 +27,9 @@ struct RenderPass {
     particle_buffers: Vec<wgpu::Buffer>,
     vertices_buffer: wgpu::Buffer,
 }
+
+#[repr(C)]
+#[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
 struct DemoBoidsSettings {
     delta_t: f32,        // cohesion
     rule1_distance: f32, // separation
@@ -43,7 +45,7 @@ impl DemoBoidsSettings {
     pub fn new() -> Self {
         Self {
             delta_t: 0.04f32,
-            rule1_distance: 0.1,
+            rule1_distance: 0.08,
             rule2_distance: 0.025,
             rule3_distance: 0.025,
             rule1_scale: 0.02,
@@ -53,21 +55,8 @@ impl DemoBoidsSettings {
         }
     }
 
-    pub fn get_as_array(&self) -> [f32; 8] {
-        [
-            self.delta_t,
-            self.rule1_distance,
-            self.rule2_distance,
-            self.rule3_distance,
-            self.rule1_scale,
-            self.rule2_scale,
-            self.rule3_scale,
-            self.speed,
-        ]
-    }
-
-    pub fn get_size() -> usize {
-        mem::size_of::<DemoBoidsSettings>()
+    pub fn get_size() -> u64 {
+        std::mem::size_of::<Self>() as _
     }
 }
 
@@ -112,7 +101,7 @@ impl Program for DemoBoidsProgram {
             settings,
             compute_pass,
             render_pass,
-            frame_rate: FrameRate::new(500),
+            frame_rate: FrameRate::new(100),
             last_update: instant::Instant::now(),
         })
     }
@@ -153,7 +142,7 @@ impl Program for DemoBoidsProgram {
         queue.write_buffer(
             &self.compute_pass.parameters,
             0,
-            bytemuck::cast_slice(&self.settings.get_as_array()),
+            bytemuck::cast_slice(&[self.settings]),
         );
     }
 
@@ -326,10 +315,11 @@ impl DemoBoidsProgram {
         device: &wgpu::Device,
         adapter: &wgpu::Adapter,
     ) -> Result<(ComputePass, RenderPass), ProgramError> {
-        let sim_param_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        let sim_param_buffer = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("Simulation Parameter Buffer"),
-            contents: bytemuck::cast_slice(&DemoBoidsSettings::new().get_as_array()), // default content
             usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+            size: DemoBoidsSettings::get_size(),
+            mapped_at_creation: false,
         });
 
         let vertex_buffer_data = [-0.01f32, -0.02, 0.01, -0.02, 0.00, 0.02];
@@ -363,9 +353,7 @@ impl DemoBoidsProgram {
                         ty: wgpu::BindingType::Buffer {
                             ty: wgpu::BufferBindingType::Uniform,
                             has_dynamic_offset: false,
-                            min_binding_size: wgpu::BufferSize::new(
-                                DemoBoidsSettings::get_size() as _
-                            ),
+                            min_binding_size: wgpu::BufferSize::new(DemoBoidsSettings::get_size()),
                         },
                         count: None,
                     },

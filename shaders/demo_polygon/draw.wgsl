@@ -1,7 +1,7 @@
 struct Uniforms {
   elapsed: f32,
   size: f32,
-  edge_count: f32,
+  edge_count: u32,
   _padding: f32,  // padding to 16 bytes, required for WebGL.
 };
 
@@ -35,7 +35,7 @@ fn vs_main(@builtin(vertex_index) in_vertex_index: u32) -> VertexOutput {
     // 012 123 234 345 ... (triangle_id + vertex_offset) 
     let vertex_id = triangle_id + vertex_offset;
     // finally we will just have to consider the first element of the triangle as the center later.
-    let vertex_angle = 2.0 * pi * f32(vertex_id) / uniforms.edge_count;
+    let vertex_angle = 2.0 * pi * f32(vertex_id) / f32(uniforms.edge_count);
 
     if vertex_offset > 0u {
         // polygon edge.

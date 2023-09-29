@@ -6,7 +6,8 @@ use crate::mouse_input::MouseState;
 // This version removes the use of quaternion to avoid adding a dependency.
 // To avoid having to do linear algebra ourselves, most computations are done in the shader.
 // This is sub-optimal. Improving this is left as an exercise to the reader.
-#[derive(Debug)]
+#[repr(C)]
+#[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct CameraLookAt {
     // Object the camera is looking at.
     pub center: [f32; 3],

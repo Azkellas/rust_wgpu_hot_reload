@@ -1,5 +1,3 @@
-use wgpu::util::DeviceExt;
-
 use crate::frame_rate::FrameRate;
 use crate::program::{Program, ProgramError};
 use crate::shader_builder::ShaderBuilder;
@@ -18,8 +16,11 @@ pub struct Pass {
 /// Settings for the `DemoProgram`
 /// `polygon_edge_count` is not exposed in ui on purpose for demo purposes
 /// change it in the code with hot-reload enable to see it working.
-#[derive(Clone, Copy, Debug)]
+#[repr(C)]
+#[derive(Clone, Copy, Debug, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct DemoPolygonSettings {
+    // elapsed take the speed into consideration
+    elapsed: f32,
     /// polygon radius in window, between 0 and 1
     polygon_size: f32, // exposed in ui
     /// regular polygon edge count, expected to be 3 or more
@@ -28,6 +29,20 @@ pub struct DemoPolygonSettings {
     speed: f32, // exposed in ui
 }
 
+impl DemoPolygonSettings {
+    pub fn new() -> Self {
+        Self {
+            elapsed: 0.0,
+            polygon_size: 0.5,
+            polygon_edge_count: 3,
+            speed: 1.0,
+        }
+    }
+
+    pub fn get_size() -> u64 {
+        std::mem::size_of::<Self>() as _
+    }
+}
 /// Demo Program rotation a regular polygon showcasing the three type of live updates
 ///     shader: `draw.wgsl`
 ///     rust: `polygon_edge_count` in `DemoProgram::update`
@@ -38,7 +53,6 @@ pub struct DemoPolygonProgram {
     _start_time: instant::Instant, // std::time::Instant is not compatible with wasm
     last_update: instant::Instant,
     settings: DemoPolygonSettings,
-    elapsed: f32, // elapsed take the speed into consideration
     frame_rate: FrameRate,
 }
 
@@ -56,12 +70,7 @@ impl Program for DemoPolygonProgram {
             render_pass,
             _start_time: instant::Instant::now(),
             last_update: instant::Instant::now(),
-            settings: DemoPolygonSettings {
-                polygon_size: 0.5,
-                polygon_edge_count: 3,
-                speed: 1.0,
-            },
-            elapsed: 0.0,
+            settings: DemoPolygonSettings::new(),
             frame_rate: FrameRate::default(),
         })
     }
@@ -99,18 +108,13 @@ impl Program for DemoPolygonProgram {
 
         // update elapsed time, taking speed into consideration.
         let last_frame_duration = self.last_update.elapsed().as_secs_f32();
-        self.elapsed += last_frame_duration * self.settings.speed;
+        self.settings.elapsed += last_frame_duration * self.settings.speed;
         self.frame_rate.update(last_frame_duration);
         self.last_update = instant::Instant::now();
         queue.write_buffer(
             &self.render_pass.uniform_buf,
             0,
-            bytemuck::cast_slice(&[
-                self.elapsed,
-                self.settings.polygon_size,
-                self.settings.polygon_edge_count as f32,
-                0.0,
-            ]),
+            bytemuck::cast_slice(&[self.settings]),
         );
     }
 
@@ -214,10 +218,11 @@ impl DemoPolygonProgram {
         adapter: &wgpu::Adapter,
     ) -> Result<Pass, ProgramError> {
         // create uniform buffer.
-        let uniforms = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("Camera Buffer"),
-            contents: bytemuck::cast_slice(&[0.0, 0.0, 0.0, 0.0]),
+        let uniforms = device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("Uniforms Buffer"),
+            size: DemoPolygonSettings::get_size(),
             usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
         });
 
         let uniforms_bind_group_layout =

@@ -43,6 +43,15 @@ impl Vertex {
     }
 }
 
+#[repr(C)]
+#[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
+pub struct DemoRaymarchingSettings {
+    pub camera: CameraLookAt,
+    pub size: [f32; 2],
+    pub elapsed: f32,   // elapsed take the speed into consideration
+    _padding: [f32; 3], // padding for alignment
+}
+
 /// Demo raymarching program.
 /// Everything is done in the shader.
 /// Provides both 2d and 3d raymarching.
@@ -51,10 +60,28 @@ pub struct DemoRaymarchingProgram {
     render_pass: Pass,
     _start_time: instant::Instant, // std::time::Instant is not compatible with wasm
     last_update: instant::Instant,
-    elapsed: f32, // elapsed take the speed into consideration
     frame_rate: FrameRate,
-    size: [f32; 2],
-    camera: CameraLookAt,
+    settings: DemoRaymarchingSettings,
+}
+
+impl DemoRaymarchingSettings {
+    pub fn new() -> Self {
+        Self {
+            camera: CameraLookAt::default(),
+            size: [0.0, 0.0],
+            elapsed: 0.0,
+            _padding: [0.0; 3],
+        }
+    }
+
+    pub fn get_size() -> u64 {
+        dbg!(
+            "DemoRaymarchingSettings::get_size",
+            std::mem::size_of::<Self>(),
+            (bytemuck::cast_slice(&[Self::new()]) as &[u8]).len()
+        );
+        std::mem::size_of::<Self>() as _
+    }
 }
 
 impl Program for DemoRaymarchingProgram {
@@ -71,10 +98,8 @@ impl Program for DemoRaymarchingProgram {
             render_pass,
             _start_time: instant::Instant::now(),
             last_update: instant::Instant::now(),
-            elapsed: 0.0,
-            frame_rate: FrameRate::new(200),
-            size: [0.0, 0.0],
-            camera: CameraLookAt::default(),
+            frame_rate: FrameRate::new(100),
+            settings: DemoRaymarchingSettings::new(),
         })
     }
 
@@ -101,8 +126,8 @@ impl Program for DemoRaymarchingProgram {
         _device: &wgpu::Device,
         _queue: &wgpu::Queue,
     ) {
-        self.size[0] = surface_configuration.width as f32;
-        self.size[1] = surface_configuration.height as f32;
+        self.settings.size[0] = surface_configuration.width as f32;
+        self.settings.size[1] = surface_configuration.height as f32;
     }
 
     /// Update program before rendering.
@@ -112,23 +137,13 @@ impl Program for DemoRaymarchingProgram {
 
         // update elapsed time, taking speed into consideration.
         let last_frame_duration = self.last_update.elapsed().as_secs_f32();
-        self.elapsed += last_frame_duration;
+        self.settings.elapsed += last_frame_duration;
         self.frame_rate.update(last_frame_duration);
         self.last_update = instant::Instant::now();
         queue.write_buffer(
             &self.render_pass.uniform_buf,
             0,
-            bytemuck::cast_slice(&[
-                self.elapsed,
-                self.size[0],
-                self.size[1],
-                self.camera.angle,
-                self.camera.center[0],
-                self.camera.center[1],
-                self.camera.center[2],
-                self.camera.height,
-                self.camera.distance,
-            ]),
+            bytemuck::cast_slice(&[self.settings]),
         );
     }
 
@@ -173,7 +188,7 @@ impl Program for DemoRaymarchingProgram {
     }
 
     fn get_camera(&mut self) -> Option<&mut crate::camera_control::CameraLookAt> {
-        Some(&mut self.camera)
+        Some(&mut self.settings.camera)
     }
 }
 
@@ -229,10 +244,11 @@ impl DemoRaymarchingProgram {
         adapter: &wgpu::Adapter,
     ) -> Result<Pass, ProgramError> {
         // create uniform buffer.
-        let uniforms = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        let uniforms = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("Camera Buffer"),
-            contents: bytemuck::cast_slice(&[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
             usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+            size: DemoRaymarchingSettings::get_size(),
+            mapped_at_creation: false,
         });
 
         let uniforms_bind_group_layout =

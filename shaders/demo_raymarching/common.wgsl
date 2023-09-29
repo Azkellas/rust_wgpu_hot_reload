@@ -1,12 +1,12 @@
 // Vertex shader
 struct Uniforms {
-  elapsed: f32,
-  width: f32,
-  height: f32,
-  camera_angle: f32,
   camera_center: vec3<f32>,
+  camera_angle: f32,
   camera_height: f32,
   camera_distance: f32,
+  width: f32,
+  height: f32,
+  elapsed: f32,
 };
 
 struct VertexInput {
