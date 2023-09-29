@@ -16,6 +16,10 @@ mod shader_builder;
 
 use crate::program::{Program, ProgramError};
 
+// Any type from libthat is used in the functions signatures in lib.rs should be re-exported here
+// and re-imported in hot_lib.rs.
+pub use crate::camera_control::CameraLookAt;
+
 /// Specify which program we want to run here.
 pub use crate::demo_polygon::DemoPolygonProgram as CurrentProgram;
 // pub use crate::demo_boids::DemoBoidsProgram as CurrentProgram;
@@ -115,8 +119,6 @@ pub fn program_required_limits() -> wgpu::Limits {
 }
 
 #[no_mangle]
-pub fn get_program_camera(
-    program: &mut CurrentProgram,
-) -> Option<&mut crate::camera_control::CameraLookAt> {
+pub fn get_program_camera(program: &mut CurrentProgram) -> Option<&mut CameraLookAt> {
     program.get_camera()
 }
