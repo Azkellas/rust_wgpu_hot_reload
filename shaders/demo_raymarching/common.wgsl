@@ -3,7 +3,10 @@ struct Uniforms {
   elapsed: f32,
   width: f32,
   height: f32,
-  _padding: f32,  // padding to 16 bytes, required for WebGL.
+  camera_angle: f32,
+  camera_center: vec3<f32>,
+  camera_height: f32,
+  camera_distance: f32,
 };
 
 struct VertexInput {

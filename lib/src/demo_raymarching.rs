@@ -1,5 +1,6 @@
 use wgpu::util::DeviceExt;
 
+use crate::camera_control::CameraLookAt;
 use crate::frame_rate::FrameRate;
 use crate::program::{Program, ProgramError};
 use crate::shader_builder::ShaderBuilder;
@@ -53,6 +54,7 @@ pub struct DemoRaymarchingProgram {
     elapsed: f32, // elapsed take the speed into consideration
     frame_rate: FrameRate,
     size: [f32; 2],
+    camera: CameraLookAt,
 }
 
 impl Program for DemoRaymarchingProgram {
@@ -72,6 +74,7 @@ impl Program for DemoRaymarchingProgram {
             elapsed: 0.0,
             frame_rate: FrameRate::new(200),
             size: [0.0, 0.0],
+            camera: CameraLookAt::default(),
         })
     }
 
@@ -115,7 +118,17 @@ impl Program for DemoRaymarchingProgram {
         queue.write_buffer(
             &self.render_pass.uniform_buf,
             0,
-            bytemuck::cast_slice(&[self.elapsed, self.size[0], self.size[1], 0.0]),
+            bytemuck::cast_slice(&[
+                self.elapsed,
+                self.size[0],
+                self.size[1],
+                self.camera.angle,
+                self.camera.center[0],
+                self.camera.center[1],
+                self.camera.center[2],
+                self.camera.height,
+                self.camera.distance,
+            ]),
         );
     }
 
@@ -157,6 +170,10 @@ impl Program for DemoRaymarchingProgram {
         ui.heading("Settings");
         ui.separator();
         ui.label(std::format!("framerate: {:.0}fps", self.frame_rate.get()));
+    }
+
+    fn get_camera(&mut self) -> Option<&mut crate::camera_control::CameraLookAt> {
+        Some(&mut self.camera)
     }
 }
 
@@ -214,7 +231,7 @@ impl DemoRaymarchingProgram {
         // create uniform buffer.
         let uniforms = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("Camera Buffer"),
-            contents: bytemuck::cast_slice(&[0.0, 0.0, 0.0, 0.0]),
+            contents: bytemuck::cast_slice(&[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
             usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
         });
 

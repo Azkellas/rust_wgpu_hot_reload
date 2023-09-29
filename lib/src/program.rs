@@ -93,4 +93,8 @@ pub trait Program: Sized {
         // These downlevel limits will allow the code to run on all possible hardware
         wgpu::Limits::downlevel_webgl2_defaults()
     }
+
+    fn get_camera(&mut self) -> Option<&mut crate::camera_control::CameraLookAt> {
+        None
+    }
 }

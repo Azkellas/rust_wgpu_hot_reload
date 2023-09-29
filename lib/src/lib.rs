@@ -7,7 +7,9 @@ mod demo_boids;
 mod demo_polygon;
 mod demo_raymarching;
 
+pub mod camera_control;
 mod frame_rate;
+pub mod mouse_input;
 pub mod program;
 pub mod reload_flags;
 mod shader_builder;
@@ -110,4 +112,11 @@ pub fn program_required_downlevel_capabilities() -> wgpu::DownlevelCapabilities 
 #[no_mangle]
 pub fn program_required_limits() -> wgpu::Limits {
     CurrentProgram::required_limits()
+}
+
+#[no_mangle]
+pub fn get_program_camera(
+    program: &mut CurrentProgram,
+) -> Option<&mut crate::camera_control::CameraLookAt> {
+    program.get_camera()
 }

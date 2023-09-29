@@ -85,8 +85,11 @@ async fn run(
         .get_default_config(&adapter, size.width, size.height)
         .expect("Surface isn't supported by the adapter.");
 
-    // Comment to disable freerun and enable v-sync.
-    config.present_mode = wgpu::PresentMode::Immediate;
+    // Comment to disable freerun and enable v-sync. Note that this is only valid in native.
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        config.present_mode = wgpu::PresentMode::Immediate;
+    }
 
     surface.configure(&device, &config);
 
@@ -100,6 +103,8 @@ async fn run(
     let mut egui_state = egui_winit::State::new(&event_loop);
     let egui_context = egui::Context::default();
     let mut egui_renderer = Renderer::new(&device, config.format, None, 1);
+
+    let mut mouse_state = lib::mouse_input::MouseState::default();
 
     event_loop.run(move |event, _, control_flow| {
         // Have the closure take ownership of the resources.
@@ -132,6 +137,14 @@ async fn run(
                             library_bridge::resize_program(&mut program, &config, &device, &queue);
                         }
                     }
+                    WindowEvent::CursorMoved { .. }
+                    | WindowEvent::MouseInput { .. }
+                    | WindowEvent::MouseWheel { .. } => {
+                        mouse_state.on_window_event(window_event);
+                        if let Some(camera) = library_bridge::get_program_camera(&mut program) {
+                            camera.update(&mouse_state, [size.width as f32, size.height as f32]);
+                        };
+                    }
                     _ => {
                         // ignore event response.
                         let _ = egui_state.on_event(&egui_context, &window_event);
@@ -142,6 +155,7 @@ async fn run(
                 window.request_redraw();
             }
             Event::RedrawRequested(_) => {
+                mouse_state.clear_deltas();
                 let mut data = data.lock().unwrap();
                 // Reload shaders if needed
                 if !data.shaders.is_empty() {

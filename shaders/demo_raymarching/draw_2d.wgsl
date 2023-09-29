@@ -4,7 +4,6 @@
 fn sdf_circle(pos: vec2<f32>, origin: vec2<f32>, radius: f32) -> f32 {
     return length(pos - origin) - radius;
 }
-
 fn sdf_square(pos: vec2<f32>, origin: vec2<f32>, size: f32, rounding: f32) -> f32 {
     let d = abs(pos - origin) - vec2<f32>(size - rounding, size - rounding);
     return length(max(d, vec2<f32>(0.0, 0.0))) + min(max(d.x, d.y), 0.0) - rounding;

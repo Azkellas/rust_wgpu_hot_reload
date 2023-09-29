@@ -994,6 +994,7 @@ dependencies = [
  "pollster",
  "rust-embed",
  "wgpu",
+ "winit",
 ]
 
 [[package]]
