@@ -14,7 +14,7 @@ resolver = "2"
 members = ["lib"]
 
 [workspace.dependencies]
-wgpu = { version = "0.17.0", default-features = false }
+wgpu = { version = "0.17.1", default-features = false }
 egui = { git = "https://github.com/emilk/egui.git", rev = "b896d641c578c04603adf07a9350b8bfc3c7ed9f" }
 pollster = "0.3.0"
 log = "0.4.19"
