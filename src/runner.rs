@@ -110,7 +110,14 @@ async fn run(
         // Have the closure take ownership of the resources.
         // `event_loop.run` never returns, therefore we must do this to ensure
         // the resources are properly cleaned up.
-        let _ = (&instance, &adapter, &program);
+        let _ = (
+            &instance,
+            &adapter,
+            &program,
+            &egui_renderer,
+            &egui_context,
+            &egui_state,
+        );
 
         // Poll all events to ensure a maximum framerate.
         *control_flow = ControlFlow::Poll;
@@ -140,10 +147,12 @@ async fn run(
                     WindowEvent::CursorMoved { .. }
                     | WindowEvent::MouseInput { .. }
                     | WindowEvent::MouseWheel { .. } => {
-                        mouse_state.on_window_event(window_event);
+                        mouse_state.on_window_event(&window_event);
                         if let Some(camera) = library_bridge::get_program_camera(&mut program) {
                             camera.update(&mouse_state, [size.width as f32, size.height as f32]);
                         };
+                        // ignore event response.
+                        let _ = egui_state.on_event(&egui_context, &window_event);
                     }
                     _ => {
                         // ignore event response.

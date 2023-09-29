@@ -15,7 +15,7 @@ members = ["lib"]
 
 [workspace.dependencies]
 wgpu = { version = "0.17.1", default-features = false }
-egui = { git = "https://github.com/emilk/egui.git", rev = "b896d641c578c04603adf07a9350b8bfc3c7ed9f" }
+egui = "0.23.0"
 pollster = "0.3.0"
 log = "0.4.19"
 winit = "0.28.7"
@@ -33,13 +33,8 @@ hot-lib-reloader = { version = "^0.6", optional = true }
 env_logger = "0.10.0"
 wasm-bindgen = "0.2.87"
 
-# egui = "0.22.0" not compatible with wgpu 0.17 yet
-# egui-wgpu = "0.22.0" not compatible with wgpu 0.17 yet
-# egui-winit = "0.22.0" not compatible with wgpu 0.17 yet
-egui-wgpu = { git = "https://github.com/emilk/egui.git", features = [
-    "winit",
-], rev = "b896d641c578c04603adf07a9350b8bfc3c7ed9f" }
-egui-winit = { git = "https://github.com/emilk/egui.git", default-features = false, rev = "b896d641c578c04603adf07a9350b8bfc3c7ed9f" }
+egui-wgpu = { version = "0.23.0", features = ["winit"] }
+egui-winit = { version = "0.23.0", default-features = false }
 
 
 [features]

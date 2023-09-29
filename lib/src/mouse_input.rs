@@ -28,10 +28,10 @@ impl MouseState {
     }
 
     // Called on relevant window events.
-    pub fn on_window_event(&mut self, window_event: WindowEvent) {
+    pub fn on_window_event(&mut self, window_event: &WindowEvent) {
         self.position_delta = [0.0, 0.0];
         self.scroll_delta = 0.0;
-        match window_event {
+        match *window_event {
             WindowEvent::MouseInput { button, state, .. } => match button {
                 MouseButton::Left => self.left = state == ElementState::Pressed,
                 MouseButton::Right => self.right = state == ElementState::Pressed,
