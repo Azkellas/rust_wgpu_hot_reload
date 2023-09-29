@@ -2,7 +2,7 @@ use egui_wgpu::renderer::{Renderer, ScreenDescriptor};
 use std::rc::Rc;
 use std::sync::{Arc, Mutex};
 use winit::{
-    event::{Event, VirtualKeyCode, WindowEvent},
+    event::{Event, WindowEvent},
     event_loop::{ControlFlow, EventLoop},
     window::Window,
 };
@@ -128,11 +128,6 @@ async fn run(
             } => {
                 match window_event {
                     WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
-                    WindowEvent::KeyboardInput { input, .. }
-                        if input.virtual_keycode == Some(VirtualKeyCode::Escape) =>
-                    {
-                        *control_flow = ControlFlow::Exit;
-                    }
                     WindowEvent::Resized(new_size) => {
                         // Resize with 0 width and height is used by winit to signal a minimize event on Windows.
                         // See: https://github.com/rust-windowing/winit/issues/208
