@@ -2,6 +2,18 @@
 
 https://github.com/Azkellas/rust_wgpu_hot_reload/assets/29731210/49643bd5-b56c-460e-940f-13d498e1533e
 
+<details>
+  <summary>Demo Boids</summary>
+https://github.com/Azkellas/rust_wgpu_hot_reload/assets/29731210/b3befb4d-6ef5-437e-a737-b99d32dbaa65
+</details>
+
+
+<details>
+  <summary>Demo Raymarching</summary>
+https://github.com/Azkellas/rust_wgpu_hot_reload/assets/29731210/592edece-d19e-48a1-9bab-e0e711511992
+</details>
+
+
 Hot reload both shaders and rust code while developing a WGPU application with [egui](https://github.com/emilk/egui) integration.
 
 Package a single binary/wasm for native and web targets.
