@@ -89,7 +89,9 @@ jobs:
         with:
           target: wasm32-unknown-unknown
       - uses: Swatinem/rust-cache@v2
-      - name: Check for target wasm
+      - name: Check for target wasm webgpu
         env:
           RUSTFLAGS: --cfg=web_sys_unstable_apis
         run: cargo check --target wasm32-unknown-unknown
+      - name: Check for target wasm webgl
+        run: cargo check --target wasm32-unknown-unknown --features webgl
