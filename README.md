@@ -65,6 +65,8 @@ cargo build --target wasm32-unknown-unknown --features webgl
 RUSTFLAGS=--cfg=web_sys_unstable_apis cargo build --target wasm32-unknown-unknown
 
 # And generate wasm bindings:
+# wasm-bindgen command line comes with the wasm-bindgen-cli binary crate.
+# You need to install it with the same version as the one used by this project (currently 0.2.88).
 wasm-bindgen --out-dir target/generated --web target/wasm32-unknown-unknown/debug/wgpu-hot-reload.wasm
 
 # Copy the index.html in `target/generated`
