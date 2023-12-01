@@ -34,7 +34,7 @@ env_logger = "0.10.0"
 wasm-bindgen = "0.2.88"
 
 egui-wgpu = { version = "0.23.0", features = ["winit"] }
-egui-winit = { version = "0.23.0", default-features = false }
+egui-winit = { version = "0.24.1", default-features = false }
 
 
 [features]
