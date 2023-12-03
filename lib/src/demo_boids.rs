@@ -186,13 +186,15 @@ impl Program for DemoBoidsProgram {
                 // Not clearing here in order to test wgpu's zero texture initialization on a surface texture.
                 // Users should avoid loading uninitialized memory since this can cause additional overhead.
                 load: wgpu::LoadOp::Load,
-                store: true,
+                store: wgpu::StoreOp::Store,
             },
         })];
         let render_pass_descriptor = wgpu::RenderPassDescriptor {
             label: None,
             color_attachments: &color_attachments,
             depth_stencil_attachment: None,
+            timestamp_writes: None,
+            occlusion_query_set: None,
         };
 
         // get command encoder
@@ -202,8 +204,10 @@ impl Program for DemoBoidsProgram {
         command_encoder.push_debug_group("compute boid movement");
         {
             // compute pass
-            let mut cpass =
-                command_encoder.begin_compute_pass(&wgpu::ComputePassDescriptor { label: None });
+            let mut cpass = command_encoder.begin_compute_pass(&wgpu::ComputePassDescriptor {
+                label: None,
+                timestamp_writes: None,
+            });
             cpass.set_pipeline(&self.compute_pass.compute_pipeline);
             cpass.set_bind_group(
                 0,

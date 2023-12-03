@@ -27,6 +27,8 @@ async fn run(
     let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
         backends,
         dx12_shader_compiler,
+        flags: wgpu::InstanceFlags::default(),
+        gles_minor_version: wgpu::Gles3MinorVersion::default(),
     });
 
     // let instance = wgpu::Instance::default();
@@ -100,7 +102,8 @@ async fn run(
     window.set_title(library_bridge::get_program_name(&program).as_str());
 
     // Create egui state.
-    let mut egui_state = egui_winit::State::new(&event_loop);
+    let mut egui_state =
+        egui_winit::State::new(egui::ViewportId::default(), &event_loop, None, None);
     let egui_context = egui::Context::default();
     let mut egui_renderer = Renderer::new(&device, config.format, None, 1);
 
@@ -147,11 +150,11 @@ async fn run(
                             camera.update(&mouse_state, [size.width as f32, size.height as f32]);
                         };
                         // ignore event response.
-                        let _ = egui_state.on_event(&egui_context, &window_event);
+                        let _ = egui_state.on_window_event(&egui_context, &window_event);
                     }
                     _ => {
                         // ignore event response.
-                        let _ = egui_state.on_event(&egui_context, &window_event);
+                        let _ = egui_state.on_window_event(&egui_context, &window_event);
                     }
                 }
             }
@@ -233,7 +236,8 @@ async fn run(
                         },
                     );
                     let output = egui_context.end_frame();
-                    let paint_jobs = egui_context.tessellate(output.shapes);
+                    let paint_jobs =
+                        egui_context.tessellate(output.shapes, egui_context.pixels_per_point());
                     let screen_descriptor = ScreenDescriptor {
                         size_in_pixels: [config.width, config.height],
                         pixels_per_point: 1.0,
@@ -269,10 +273,13 @@ async fn run(
                                     resolve_target: None,
                                     ops: wgpu::Operations {
                                         load: wgpu::LoadOp::Load,
-                                        store: true,
+                                        store: wgpu::StoreOp::Store,
                                     },
                                 })],
                                 depth_stencil_attachment: None,
+                                timestamp_writes: None,
+
+                                occlusion_query_set: None,
                             });
 
                         egui_renderer.render(&mut render_pass, &paint_jobs, &screen_descriptor);

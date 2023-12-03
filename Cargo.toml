@@ -14,10 +14,10 @@ resolver = "2"
 members = ["lib"]
 
 [workspace.dependencies]
-wgpu = { version = "0.17.1", default-features = false }
-egui = "0.23.0"
+wgpu = { version = "0.18.0", default-features = false }
+egui = "0.24.1"
 pollster = "0.3.0"
-log = "0.4.19"
+log = "0.4.20"
 winit = "0.28.7"
 
 
@@ -30,11 +30,11 @@ winit.workspace = true
 lib = { path = "./lib" }
 hot-lib-reloader = { version = "^0.6", optional = true }
 
-env_logger = "0.10.0"
-wasm-bindgen = "0.2.88"
+env_logger = "0.10.1"
+wasm-bindgen = "0.2.89"
 
-egui-wgpu = { version = "0.23.0", features = ["winit"] }
-egui-winit = { version = "0.23.0", default-features = false }
+egui-wgpu = { version = "0.24.1", features = ["winit"] }
+egui-winit = { version = "0.24.1", default-features = false }
 
 
 [features]
@@ -51,10 +51,10 @@ opt-level = 0
 opt-level = 1
 
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
-notify = "6.0.1"
+notify = "6.1.1"
 
 [target.'cfg(target_family = "wasm")'.dependencies]
-wasm-bindgen-futures = "0.4.37"
+wasm-bindgen-futures = "0.4.39"
 web-sys = "=0.3.64"
 console_error_panic_hook = "0.1.7"
 console_log = "1.0.0"
