@@ -28,7 +28,7 @@ pollster.workspace = true
 log.workspace = true
 winit.workspace = true
 lib = { path = "./lib" }
-hot-lib-reloader = { version = "^0.6", optional = true }
+hot-lib-reloader = { version = "^0.7", optional = true }
 
 env_logger = "0.10.1"
 wasm-bindgen = "0.2.89"
