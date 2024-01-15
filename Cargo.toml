@@ -31,7 +31,7 @@ lib = { path = "./lib" }
 hot-lib-reloader = { version = "^0.6", optional = true }
 
 env_logger = "0.10.1"
-wasm-bindgen = "0.2.89"
+wasm-bindgen = "0.2.90"
 
 egui-wgpu = { version = "0.24.1", features = ["winit"] }
 egui-winit = { version = "0.24.1", default-features = false }
