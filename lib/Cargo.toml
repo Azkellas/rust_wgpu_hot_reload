@@ -9,7 +9,7 @@ wgpu.workspace = true
 egui.workspace = true
 pollster.workspace = true
 log.workspace = true
-bytemuck = { version = "1.14.0", features = ["derive"] }
+bytemuck = { version = "1.14.3", features = ["derive"] }
 instant = "0.1.12"
 nanorand = { version = "0.7", default-features = false, features = ["wyrand"] }
 
