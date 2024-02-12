@@ -35,16 +35,17 @@ pub fn create_program(
     surface: &wgpu::Surface,
     device: &wgpu::Device,
     adapter: &wgpu::Adapter,
+    surface_configuration: &wgpu::SurfaceConfiguration,
 ) -> Result<CurrentProgram, ProgramError> {
-    CurrentProgram::init(surface, device, adapter)
+    CurrentProgram::init(surface, device, adapter, surface_configuration)
 }
 
 /// Contrary to `Program::get_name`, this function returns a String
 /// and not a &'static str since we cannot return a static reference
 /// from a dynamic library.
 #[no_mangle]
-pub fn get_program_name(program: &CurrentProgram) -> String {
-    program.get_name().to_owned()
+pub fn get_program_name() -> String {
+    CurrentProgram::get_name().to_owned()
 }
 
 /// Resize program. This is called when the main window was resized,
@@ -96,6 +97,11 @@ pub fn render_frame(
 #[no_mangle]
 pub fn render_ui(program: &mut CurrentProgram, ui: &mut egui::Ui) {
     program.draw_ui(ui);
+}
+
+#[no_mangle]
+pub fn process_input(program: &mut CurrentProgram, input: &winit_input_helper::WinitInputHelper) {
+    program.process_input(input);
 }
 
 #[no_mangle]

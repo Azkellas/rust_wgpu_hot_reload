@@ -50,8 +50,8 @@ impl DemoPolygonSettings {
 #[derive(Debug)]
 pub struct DemoPolygonProgram {
     render_pass: Pass,
-    _start_time: instant::Instant, // std::time::Instant is not compatible with wasm
-    last_update: instant::Instant,
+    _start_time: web_time::Instant, // std::time::Instant is not compatible with wasm
+    last_update: web_time::Instant,
     settings: DemoPolygonSettings,
     frame_rate: FrameRate,
 }
@@ -63,20 +63,21 @@ impl Program for DemoPolygonProgram {
         surface: &wgpu::Surface,
         device: &wgpu::Device,
         adapter: &wgpu::Adapter,
+        _surface_configuration: &wgpu::SurfaceConfiguration,
     ) -> Result<Self, ProgramError> {
         let render_pass = Self::create_render_pass(surface, device, adapter)?;
 
         Ok(Self {
             render_pass,
-            _start_time: instant::Instant::now(),
-            last_update: instant::Instant::now(),
+            _start_time: web_time::Instant::now(),
+            last_update: web_time::Instant::now(),
             settings: DemoPolygonSettings::new(),
             frame_rate: FrameRate::default(),
         })
     }
 
     /// Get program name.
-    fn get_name(&self) -> &'static str {
+    fn get_name() -> &'static str {
         "Demo polygon"
     }
 
@@ -110,7 +111,7 @@ impl Program for DemoPolygonProgram {
         let last_frame_duration = self.last_update.elapsed().as_secs_f32();
         self.settings.elapsed += last_frame_duration * self.settings.speed;
         self.frame_rate.update(last_frame_duration);
-        self.last_update = instant::Instant::now();
+        self.last_update = web_time::Instant::now();
         queue.write_buffer(
             &self.render_pass.uniform_buf,
             0,

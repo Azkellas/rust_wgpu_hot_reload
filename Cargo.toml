@@ -9,16 +9,22 @@ repository = "https://github.com/Azkellas/rust_wgpu_hot_reload"
 description = "A template rust project to be productive in wgpu, with hot reload and wasm export"
 keywords = ["wgpu", "hot-reload", "wasm", "template"]
 
+
 [workspace]
 resolver = "2"
-members = ["lib"]
+members = ["lib", "run-wasm"]
 
 [workspace.dependencies]
-wgpu = { version = "0.18.0", default-features = false }
-egui = "0.24.1"
+wgpu = { version = "0.19.0", default-features = false, features = [
+    "wgsl",
+    "webgl",
+    "webgpu",
+] }
+egui = "0.26.1"
 pollster = "0.3.0"
 log = "0.4.20"
-winit = "0.28.7"
+winit = "0.29.10"
+winit_input_helper = "0.15.3"
 
 
 [dependencies]
@@ -27,22 +33,20 @@ egui.workspace = true
 pollster.workspace = true
 log.workspace = true
 winit.workspace = true
+winit_input_helper.workspace = true
 lib = { path = "./lib" }
 hot-lib-reloader = { version = "^0.7", optional = true }
 
-env_logger = "0.10.1"
+env_logger = "0.11.1"
 wasm-bindgen = "0.2.91"
 
-egui-wgpu = { version = "0.24.1", features = ["winit"] }
-egui-winit = { version = "0.24.1", default-features = false }
+egui-wgpu = { version = "0.26.1", features = ["winit"] }
+egui-winit = { version = "0.26.1", default-features = false }
+cfg-if = "1.0.0"
 
 
 [features]
-webgl = ["wgpu/webgl", "lib/webgl"]
-wgsl = ["wgpu/wgsl", "lib/wgsl"]
-default = ["wgsl"]
 reload = ["dep:hot-lib-reloader"]
-
 
 [profile.dev]
 opt-level = 0
@@ -55,6 +59,6 @@ notify = "6.1.1"
 
 [target.'cfg(target_family = "wasm")'.dependencies]
 wasm-bindgen-futures = "0.4.39"
-web-sys = "=0.3.64"
+web-sys = "=0.3.67"
 console_error_panic_hook = "0.1.7"
 console_log = "1.0.0"

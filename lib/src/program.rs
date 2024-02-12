@@ -43,10 +43,11 @@ pub trait Program: Sized {
         surface: &wgpu::Surface,
         device: &wgpu::Device,
         adapter: &wgpu::Adapter,
+        surface_configuration: &wgpu::SurfaceConfiguration,
     ) -> Result<Self, ProgramError>;
 
     /// Get program name.
-    fn get_name(&self) -> &'static str;
+    fn get_name() -> &'static str;
 
     /// Create render pipeline.
     ///
@@ -75,6 +76,11 @@ pub trait Program: Sized {
 
     /// Draw ui.
     fn draw_ui(&mut self, ui: &mut egui::Ui);
+
+    /// Process input. Return true if the input was processed.
+    fn process_input(&mut self, _input: &winit_input_helper::WinitInputHelper) -> bool {
+        false
+    }
 
     fn optional_features() -> wgpu::Features {
         wgpu::Features::empty()

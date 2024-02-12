@@ -58,18 +58,21 @@ pub struct DemoRaymarchingSettings {
 #[derive(Debug)]
 pub struct DemoRaymarchingProgram {
     render_pass: Pass,
-    _start_time: instant::Instant, // std::time::Instant is not compatible with wasm
-    last_update: instant::Instant,
+    _start_time: web_time::Instant, // std::time::Instant is not compatible with wasm
+    last_update: web_time::Instant,
     frame_rate: FrameRate,
     settings: DemoRaymarchingSettings,
 }
 
 impl DemoRaymarchingSettings {
-    pub fn new() -> Self {
+    pub fn new(surface_configuration: &wgpu::SurfaceConfiguration) -> Self {
         Self {
             camera: CameraLookAt::default(),
             elapsed: 0.0,
-            size: [0.0, 0.0],
+            size: [
+                surface_configuration.width as f32,
+                surface_configuration.height as f32,
+            ],
             _padding: [0.0; 2],
         }
     }
@@ -86,20 +89,21 @@ impl Program for DemoRaymarchingProgram {
         surface: &wgpu::Surface,
         device: &wgpu::Device,
         adapter: &wgpu::Adapter,
+        surface_configuration: &wgpu::SurfaceConfiguration,
     ) -> Result<Self, ProgramError> {
         let render_pass = Self::create_render_pass(surface, device, adapter)?;
 
         Ok(Self {
             render_pass,
-            _start_time: instant::Instant::now(),
-            last_update: instant::Instant::now(),
+            _start_time: web_time::Instant::now(),
+            last_update: web_time::Instant::now(),
             frame_rate: FrameRate::new(100),
-            settings: DemoRaymarchingSettings::new(),
+            settings: DemoRaymarchingSettings::new(surface_configuration),
         })
     }
 
     /// Get program name.
-    fn get_name(&self) -> &'static str {
+    fn get_name() -> &'static str {
         "Demo raymarching"
     }
 
@@ -134,7 +138,7 @@ impl Program for DemoRaymarchingProgram {
         let last_frame_duration = self.last_update.elapsed().as_secs_f32();
         self.settings.elapsed += last_frame_duration;
         self.frame_rate.update(last_frame_duration);
-        self.last_update = instant::Instant::now();
+        self.last_update = web_time::Instant::now();
         queue.write_buffer(
             &self.render_pass.uniform_buf,
             0,

@@ -47,39 +47,11 @@ You can also run `cargo run` if you only care about shader hot reloading.
 
 ### Building for the web
 
-By default, this project export with wgsl backend, which is not yet supported by all browsers.
-As such, you have two options:
-- export with webgl backend, to ensure compatibility with all browsers (might not be possible depending on your project)
-- export with wgsl backend by enabling unstable apis. Works in chromium-based browsers and firefox nightly behind a flag as of 2023-08-22. See [webgpu.io](https://webgpu.io) for up to date browser implementation status.
-
+This project targets webgpu first, and defaults to webgl when not available. 
 ```sh
-# First install the version of wasm-bindgen-cli that matches the version used by wgpu:
-cargo install -f wasm-bindgen-cli --version 0.2.87
-
-# If needed, add the wasm32 target toolchain
-rustup target add wasm32-unknown-unknown
-
-# Then build the demo for `wasm32-unknown-unknown` with webgl backend:
-cargo build --target wasm32-unknown-unknown --features webgl
-# Or if you need wgsl backend:
-RUSTFLAGS=--cfg=web_sys_unstable_apis cargo build --target wasm32-unknown-unknown
-
-# And generate wasm bindings:
-# wasm-bindgen command line comes with the wasm-bindgen-cli binary crate.
-# You need to install it with the same version as the one used by this project (currently 0.2.88).
-wasm-bindgen --out-dir target/generated --web target/wasm32-unknown-unknown/debug/wgpu-hot-reload.wasm
-
-# Copy the index.html in `target/generated`
-cp index.html target/generated
+# In charge of building and hosting a webserver. Should expose to localhost:8000
+cargo run-wasm [--release] [--features ...]
 ```
-
-Lastly, run a web server locally inside the `target/generated` directory to see the project in the browser.
-Examples of servers are rust's
-[`simple-http-server target/generated`](https://crates.io/crates/simple-http-server) and 
-[`miniserve target/generated`](https://crates.io/crates/miniserve).
-
-> Note that you can set `RUSTFLAGS` in `.cargo/config.toml` to avoid having to type it every time. The env variable takes predominance on the config file.
-
 
 ---
 

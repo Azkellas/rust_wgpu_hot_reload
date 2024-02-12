@@ -86,19 +86,6 @@ fn phong_lighting(k_d: f32, k_s: f32, alpha: f32, position: vec3<f32>, eye: vec3
     return light_intensity * (k_d * dotLN + k_s * pow(dotRV, alpha));
 }
 
-// interpolation on a sphere.
-fn slerp(p0: vec3<f32>, p1: vec3<f32>, t: f32) -> vec3<f32> {
-    let dotp = dot(normalize(p0), normalize(p1));
-    if (dotp > 1.0 - EPSILON) || (dotp < -1.0 + EPSILON) {
-        if t <= 0.5 {
-            return p0;
-        }
-        return p1;
-    }
-    let theta = acos(dotp);
-    var P = ((p0 * sin((1.0 - t) * theta) + p1 * sin(t * theta)) / sin(theta));
-    return P;
-}
 
 // entry point of the 3d raymarching.
 fn sdf_3d(p: vec2<f32>) -> vec4<f32> {
@@ -108,9 +95,14 @@ fn sdf_3d(p: vec2<f32>) -> vec4<f32> {
     let look_at: vec3<f32> = uniforms.camera_center.xyz;
 
     // compute direction.
-    var angle: vec3<f32> = vec3(cos(uniforms.camera_angle), 0.0, sin(uniforms.camera_angle));
+    let longitude = uniforms.camera_longitude;
+    let latitude = uniforms.camera_latitude;
+    let angle = vec3(
+        cos(longitude) * cos(latitude),
+        sin(latitude),
+        sin(longitude) * cos(latitude)
+    );
     let up = vec3(0.0, 1.0, 0.0);
-    angle = slerp(angle, up, uniforms.camera_height);
 
     // camera position.
     var eye: vec3<f32> = look_at + angle * uniforms.camera_distance;

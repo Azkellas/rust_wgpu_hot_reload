@@ -130,9 +130,9 @@ mod tests {
         let (device, _) = pollster::block_on(adapter.request_device(
             &wgpu::DeviceDescriptor {
                 label: None,
-                features: wgpu::Features::empty(),
+                required_features: wgpu::Features::empty(),
                 // Make sure we use the texture resolution limits from the adapter, so we can support images the size of the swapchain.
-                limits:
+                required_limits:
                     wgpu::Limits::downlevel_webgl2_defaults().using_resolution(adapter.limits()),
             },
             None,

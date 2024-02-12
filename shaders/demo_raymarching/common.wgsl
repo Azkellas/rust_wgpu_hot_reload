@@ -1,8 +1,8 @@
 // Vertex shader
 struct Uniforms {
   camera_center: vec4<f32>,
-  camera_angle: f32,
-  camera_height: f32,
+  camera_longitude: f32,
+  camera_latitude: f32,
   camera_distance: f32,
   width: f32,
   height: f32,
