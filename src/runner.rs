@@ -548,9 +548,8 @@ async fn run(
                     // Present the frame.
                     context.queue.submit(Some(encoder.finish()));
                     frame.present();
-
-                    window_loop.window.request_redraw();
                 }
+                window_loop.window.request_redraw();
             }
         },
     );
