@@ -20,7 +20,7 @@ wgpu = { version = "0.19.0", default-features = false, features = [
     "webgl",
     "webgpu",
 ] }
-egui = "0.26.1"
+egui = "0.26.2"
 pollster = "0.3.0"
 log = "0.4.20"
 winit = "0.29.10"
