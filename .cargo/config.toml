@@ -8,4 +8,4 @@ linker = "rust-lld.exe"
 rustflags = "--cfg=web_sys_unstable_apis"
 
 [alias]
-run-wasm = ["run", "--release", "--package", "run-wasm", "wgpu-hot-reload"]
+run-wasm = "run --release --package run-wasm -- --package wgpu-hot-reload"
