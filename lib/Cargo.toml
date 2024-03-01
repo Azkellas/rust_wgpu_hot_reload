@@ -12,7 +12,7 @@ log.workspace = true
 winit_input_helper.workspace = true
 bytemuck = { version = "1.14.0", features = ["derive"] }
 nanorand = { version = "0.7", default-features = false, features = ["wyrand"] }
-web-time = "1.0.0"
+web-time = "1.1.0"
 
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
 rust-embed = "8.3.0" # Enable shader hot reload for native compilation.
