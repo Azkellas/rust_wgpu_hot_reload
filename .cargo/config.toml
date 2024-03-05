@@ -2,10 +2,5 @@
 [target.x86_64-pc-windows-msvc]
 linker = "rust-lld.exe"
 
-# Uncomment this to enable unstable APIs in web_sys when targetting wasm.
-# You will have to disable the wgpu/webgpu feature as well. 
-[target.'cfg(target_family = "wasm")']
-rustflags = "--cfg=web_sys_unstable_apis"
-
 [alias]
 run-wasm = "run --release --package run-wasm -- --package wgpu-hot-reload"
