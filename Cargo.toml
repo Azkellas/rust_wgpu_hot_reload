@@ -37,7 +37,7 @@ winit_input_helper.workspace = true
 lib = { path = "./lib" }
 hot-lib-reloader = { version = "^0.7", optional = true }
 
-env_logger = "0.11.2"
+env_logger = "0.11.3"
 wasm-bindgen = "0.2.91"
 
 egui-wgpu = { version = "0.26.2", features = ["winit"] }
