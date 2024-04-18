@@ -15,7 +15,7 @@ resolver = "2"
 members = ["lib", "run-wasm"]
 
 [workspace.dependencies]
-wgpu = { version = "0.19.3", default-features = false, features = [
+wgpu = { version = "0.19.4", default-features = false, features = [
     "wgsl",
     "webgl",
     "webgpu",
