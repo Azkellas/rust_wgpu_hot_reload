@@ -22,7 +22,7 @@ wgpu = { version = "0.19.4", default-features = false, features = [
 ] }
 egui = "0.27.2"
 pollster = "0.3.0"
-log = "0.4.21"
+log = "0.4.22"
 winit = "0.29.15"
 winit_input_helper = "0.15.3"
 
