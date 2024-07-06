@@ -258,6 +258,7 @@ impl DemoBoidsProgram {
             layout: Some(&compute_pipeline_layout),
             module: &compute_shader,
             entry_point: "main",
+            compilation_options: wgpu::PipelineCompilationOptions::default(),
         });
 
         Ok(compute_pipeline)
@@ -298,11 +299,13 @@ impl DemoBoidsProgram {
                         attributes: &wgpu::vertex_attr_array![2 => Float32x2],
                     },
                 ],
+                compilation_options: wgpu::PipelineCompilationOptions::default(),
             },
             fragment: Some(wgpu::FragmentState {
                 module: &draw_shader,
                 entry_point: "main_fs",
                 targets: &[Some(swapchain_format.into())],
+                compilation_options: wgpu::PipelineCompilationOptions::default(),
             }),
             primitive: wgpu::PrimitiveState::default(),
             depth_stencil: None,
