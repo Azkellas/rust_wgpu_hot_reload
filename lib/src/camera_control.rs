@@ -1,5 +1,7 @@
 use winit::event::MouseButton;
-use winit_input_helper::WinitInputHelper;
+
+use crate::winit_input_helper::WinitInputHelper;
+// use winit_input_helper::WinitInputHelper;
 
 // Naive look-at camera.
 // This version removes the use of quaternion to avoid adding a dependency.

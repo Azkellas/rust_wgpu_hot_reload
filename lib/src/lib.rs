@@ -3,6 +3,9 @@
 //! To avoid name clashes, the functions in this file
 //! should not share names with other functions in the library.
 
+mod current_input;
+pub mod winit_input_helper;
+
 mod demo_boids;
 mod demo_polygon;
 mod demo_raymarching;

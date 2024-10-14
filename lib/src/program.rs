@@ -1,5 +1,7 @@
 use std::fmt;
 
+use crate::winit_input_helper;
+
 /// Errors a program can return
 pub enum ProgramError {
     /// This encapsulate naga::front::wgsl::ParseError that is not available in wasm it seems.
