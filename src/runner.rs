@@ -258,7 +258,7 @@ impl WgpuContext {
                     label: Some("Device Descriptor"),
                     required_features: (optional_features & adapter_features) | required_features,
                     required_limits: needed_limits,
-                    memory_hints: wgpu::MemoryHints::Performance
+                    memory_hints: wgpu::MemoryHints::Performance,
                 },
                 trace_dir.ok().as_ref().map(std::path::Path::new),
             )
@@ -311,7 +311,7 @@ async fn run(
     #[allow(clippy::let_unit_value)]
     let _ = (event_loop_function)(
         window_loop.event_loop,
-        move |event: Event<()>, target: &winit::event_loop::ActiveEventLoop | {
+        move |event: Event<()>, target: &winit::event_loop::ActiveEventLoop| {
             // Poll all events to ensure a maximum framerate.
             // Firefox struggles *a lot* with poll, dropping to less than 10 fps.
             // As such we only enable it in native, since it's not required.
@@ -387,7 +387,7 @@ async fn run(
                         surface.config.as_ref().unwrap().format,
                         None,
                         1,
-                        false                        
+                        false,
                     ));
                 }
             }
@@ -496,7 +496,7 @@ async fn run(
                         size_in_pixels: [config.width, config.height],
                         pixels_per_point: egui_context.pixels_per_point(),
                     };
-                    
+
                     // Create a command encoder.
                     let mut encoder = context
                         .device
@@ -528,23 +528,26 @@ async fn run(
 
                     // Render ui.
                     {
-                        let render_pass =
-                            encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                                label: Some("egui render pass"),
-                                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                                    view: &view,
-                                    resolve_target: None,
-                                    ops: wgpu::Operations {
-                                        load: wgpu::LoadOp::Load,
-                                        store: wgpu::StoreOp::Store,
-                                    },
-                                })],
-                                depth_stencil_attachment: None,
-                                timestamp_writes: None,
-                                occlusion_query_set: None,
-                            });
+                        let render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                            label: Some("egui render pass"),
+                            color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                                view: &view,
+                                resolve_target: None,
+                                ops: wgpu::Operations {
+                                    load: wgpu::LoadOp::Load,
+                                    store: wgpu::StoreOp::Store,
+                                },
+                            })],
+                            depth_stencil_attachment: None,
+                            timestamp_writes: None,
+                            occlusion_query_set: None,
+                        });
 
-                        egui_renderer.render(&mut render_pass.forget_lifetime(), &paint_jobs, &screen_descriptor);
+                        egui_renderer.render(
+                            &mut render_pass.forget_lifetime(),
+                            &paint_jobs,
+                            &screen_descriptor,
+                        );
                         //render_pass.forget_lifetime();
                     }
 
