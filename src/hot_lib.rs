@@ -5,6 +5,7 @@ pub mod library_bridge {
     // Any type that is used in the functions signatures in lib.rs should be imported here.
     pub use lib::program::{Program, ProgramError};
     pub use lib::reload_flags::{LibState, ReloadFlags};
+    use lib::winit_input_helper;
     pub use lib::CameraLookAt;
     pub use lib::CurrentProgram;
 
