@@ -259,6 +259,7 @@ impl DemoBoidsProgram {
             module: &compute_shader,
             entry_point: "main",
             compilation_options: wgpu::PipelineCompilationOptions::default(),
+            cache: None,
         });
 
         Ok(compute_pipeline)
@@ -311,6 +312,7 @@ impl DemoBoidsProgram {
             depth_stencil: None,
             multisample: wgpu::MultisampleState::default(),
             multiview: None,
+            cache: None,
         });
 
         Ok(render_pipeline)
