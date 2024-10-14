@@ -10,7 +10,7 @@ egui.workspace = true
 pollster.workspace = true
 log.workspace = true
 winit_input_helper.workspace = true
-bytemuck = { version = "1.18.0", features = ["derive"] }
+bytemuck = { version = "1.19.0", features = ["derive"] }
 nanorand = { version = "0.7", default-features = false, features = ["wyrand"] }
 web-time = "1.1.0"
 
