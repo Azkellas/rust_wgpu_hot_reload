@@ -2,7 +2,7 @@ use egui_wgpu::{Renderer, ScreenDescriptor};
 use lib::winit_input_helper::WinitInputHelper;
 use std::sync::{Arc, Mutex};
 use winit::event::StartCause;
-use winit::platform::web::WindowAttributesExtWebSys;
+// use winit::platform::web::WindowAttributesExtWebSys;
 use winit::{
     event::Event,
     event_loop::{ControlFlow, EventLoop},
@@ -24,6 +24,8 @@ impl EventLoopWrapper {
 
         #[cfg(target_arch = "wasm32")]
         {
+            use winit::platform::web::WindowAttributesExtWebSys;
+
             use wasm_bindgen::JsCast;
             let canvas = web_sys::window()
                 .and_then(|win| win.document())
