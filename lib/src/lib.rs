@@ -6,8 +6,8 @@
 mod current_input;
 pub mod winit_input_helper;
 
-pub mod demo_pipelines;
 pub mod camera_control;
+pub mod demo_pipelines;
 mod frame_rate;
 pub mod mouse_input;
 pub mod program;

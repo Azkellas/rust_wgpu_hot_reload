@@ -78,7 +78,7 @@ impl Program for Pipeline {
 
     /// Get program name.
     fn get_name() -> &'static str {
-        " polygon"
+        "demo polygon"
     }
 
     /// Recreate render pass.

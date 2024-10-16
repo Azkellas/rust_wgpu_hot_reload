@@ -84,7 +84,7 @@ impl Program for Pipeline {
 
     /// Get program name.
     fn get_name() -> &'static str {
-        " boids"
+        "demo boids"
     }
 
     /// constructs initial instance of Example struct
