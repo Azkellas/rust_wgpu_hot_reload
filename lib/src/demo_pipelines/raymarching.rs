@@ -118,7 +118,7 @@ impl Program for Pipeline {
         Ok(())
     }
 
-    // Resize owned textures if needed, nothing for the  here.
+    // Resize owned textures if needed, nothing for the demo here.
     fn resize(
         &mut self,
         surface_configuration: &wgpu::SurfaceConfiguration,
@@ -132,7 +132,7 @@ impl Program for Pipeline {
     /// Update program before rendering.
     fn update(&mut self, queue: &wgpu::Queue) {
         // Set the edge count of the regular raymarching.
-        // This is not exposed in the ui on purpose to nstrate the rust hot reload.
+        // This is not exposed in the ui on purpose to demonstrate the rust hot reload.
 
         // update elapsed time, taking speed into consideration.
         let last_frame_duration = self.last_update.elapsed().as_secs_f32();

@@ -135,7 +135,7 @@ impl Program for Pipeline {
         self.frame_rate.update(last_frame_duration);
         self.last_update = web_time::Instant::now();
 
-        // update speed from rust only for  purposes.
+        // update speed from rust only for demo purposes.
         self.settings.speed = 1.0;
 
         // update simulation parameters on gpu.
@@ -170,7 +170,7 @@ impl Program for Pipeline {
         ui.separator();
 
         ui.label(std::format!(
-            "speed: {} (rust only for  purposes)",
+            "speed: {} (rust only for demo purposes)",
             self.settings.speed
         ));
         ui.label(std::format!("framerate: {:.0}fps", self.frame_rate.get()));

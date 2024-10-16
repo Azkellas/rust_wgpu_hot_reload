@@ -92,7 +92,7 @@ impl Program for Pipeline {
         Ok(())
     }
 
-    // Resize owned textures if needed, nothing for the  here.
+    // Resize owned textures if needed, nothing for the demo here.
     fn resize(
         &mut self,
         _surface_configuration: &wgpu::SurfaceConfiguration,
@@ -104,7 +104,7 @@ impl Program for Pipeline {
     /// Update program before rendering.
     fn update(&mut self, queue: &wgpu::Queue) {
         // Set the edge count of the regular polygon.
-        // This is not exposed in the ui on purpose to nstrate the rust hot reload.
+        // This is not exposed in the ui on purpose to demonstrate the rust hot reload.
         self.settings.polygon_edge_count = 7;
 
         // update elapsed time, taking speed into consideration.
@@ -162,7 +162,7 @@ impl Program for Pipeline {
         ui.add(egui::Slider::new(&mut self.settings.speed, 0.0..=20.0).text("speed"));
         ui.separator();
         ui.label(std::format!(
-            "edge count: {} (rust only for  purposes)",
+            "edge count: {} (rust only for demo purposes)",
             self.settings.polygon_edge_count
         ));
         ui.label(std::format!("framerate: {:.0}fps", self.frame_rate.get()));
