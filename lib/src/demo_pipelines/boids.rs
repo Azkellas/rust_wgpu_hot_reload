@@ -30,7 +30,7 @@ struct RenderPass {
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
-struct DemoBoidsSettings {
+struct BoidsSettings {
     delta_t: f32,        // cohesion
     rule1_distance: f32, // separation
     rule2_distance: f32, // alignment
@@ -41,7 +41,7 @@ struct DemoBoidsSettings {
     speed: f32,
 }
 
-impl DemoBoidsSettings {
+impl BoidsSettings {
     pub fn new() -> Self {
         Self {
             delta_t: 0.04f32,
@@ -61,15 +61,15 @@ impl DemoBoidsSettings {
 }
 
 /// Example struct holds references to wgpu resources and frame persistent data
-pub struct DemoBoidsProgram {
-    settings: DemoBoidsSettings,
+pub struct Pipeline {
+    settings: BoidsSettings,
     compute_pass: ComputePass,
     render_pass: RenderPass,
     frame_rate: FrameRate,
     last_update: web_time::Instant,
 }
 
-impl Program for DemoBoidsProgram {
+impl Program for Pipeline {
     fn required_downlevel_capabilities() -> wgpu::DownlevelCapabilities {
         wgpu::DownlevelCapabilities {
             flags: wgpu::DownlevelFlags::COMPUTE_SHADERS,
@@ -84,7 +84,7 @@ impl Program for DemoBoidsProgram {
 
     /// Get program name.
     fn get_name() -> &'static str {
-        "Demo boids"
+        " boids"
     }
 
     /// constructs initial instance of Example struct
@@ -94,11 +94,11 @@ impl Program for DemoBoidsProgram {
         adapter: &wgpu::Adapter,
         _surface_configuration: &wgpu::SurfaceConfiguration,
     ) -> Result<Self, ProgramError> {
-        let settings = DemoBoidsSettings::new();
+        let settings = BoidsSettings::new();
 
         let (compute_pass, render_pass) = Self::create_passes(surface, device, adapter)?;
 
-        Ok(DemoBoidsProgram {
+        Ok(Pipeline {
             settings,
             compute_pass,
             render_pass,
@@ -135,7 +135,7 @@ impl Program for DemoBoidsProgram {
         self.frame_rate.update(last_frame_duration);
         self.last_update = web_time::Instant::now();
 
-        // update speed from rust only for demo purposes.
+        // update speed from rust only for  purposes.
         self.settings.speed = 1.0;
 
         // update simulation parameters on gpu.
@@ -170,7 +170,7 @@ impl Program for DemoBoidsProgram {
         ui.separator();
 
         ui.label(std::format!(
-            "speed: {} (rust only for demo purposes)",
+            "speed: {} (rust only for  purposes)",
             self.settings.speed
         ));
         ui.label(std::format!("framerate: {:.0}fps", self.frame_rate.get()));
@@ -239,12 +239,12 @@ impl Program for DemoBoidsProgram {
     }
 }
 
-impl DemoBoidsProgram {
+impl Pipeline {
     fn create_compute_pipeline(
         device: &wgpu::Device,
         compute_bind_group_layout: &wgpu::BindGroupLayout,
     ) -> Result<wgpu::ComputePipeline, ProgramError> {
-        let compute_shader = ShaderBuilder::create_module(device, "demo_boids/compute.wgsl")?;
+        let compute_shader = ShaderBuilder::create_module(device, "demos/boids/compute.wgsl")?;
 
         let compute_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
@@ -270,7 +270,7 @@ impl DemoBoidsProgram {
         device: &wgpu::Device,
         adapter: &wgpu::Adapter,
     ) -> Result<wgpu::RenderPipeline, ProgramError> {
-        let draw_shader = ShaderBuilder::create_module(device, "demo_boids/draw.wgsl")?;
+        let draw_shader = ShaderBuilder::create_module(device, "demos/boids/draw.wgsl")?;
 
         let swapchain_capabilities = surface.get_capabilities(adapter);
         let swapchain_format = swapchain_capabilities.formats[0];
@@ -326,7 +326,7 @@ impl DemoBoidsProgram {
         let sim_param_buffer = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("Simulation Parameter Buffer"),
             usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
-            size: DemoBoidsSettings::get_size(),
+            size: BoidsSettings::get_size(),
             mapped_at_creation: false,
         });
 
@@ -361,7 +361,7 @@ impl DemoBoidsProgram {
                         ty: wgpu::BindingType::Buffer {
                             ty: wgpu::BufferBindingType::Uniform,
                             has_dynamic_offset: false,
-                            min_binding_size: wgpu::BufferSize::new(DemoBoidsSettings::get_size()),
+                            min_binding_size: wgpu::BufferSize::new(BoidsSettings::get_size()),
                         },
                         count: None,
                     },

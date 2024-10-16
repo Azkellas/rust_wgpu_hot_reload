@@ -45,26 +45,26 @@ impl Vertex {
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
-pub struct DemoRaymarchingSettings {
+pub struct RaymarchingSettings {
     pub camera: CameraLookAt,
     pub size: [f32; 2],
     pub elapsed: f32,   // elapsed take the speed into consideration
     _padding: [f32; 2], // padding for alignment
 }
 
-/// Demo raymarching program.
+///  raymarching program.
 /// Everything is done in the shader.
 /// Provides both 2d and 3d raymarching.
 #[derive(Debug)]
-pub struct DemoRaymarchingProgram {
+pub struct Pipeline {
     render_pass: Pass,
     _start_time: web_time::Instant, // std::time::Instant is not compatible with wasm
     last_update: web_time::Instant,
     frame_rate: FrameRate,
-    settings: DemoRaymarchingSettings,
+    settings: RaymarchingSettings,
 }
 
-impl DemoRaymarchingSettings {
+impl RaymarchingSettings {
     pub fn new(surface_configuration: &wgpu::SurfaceConfiguration) -> Self {
         Self {
             camera: CameraLookAt::default(),
@@ -82,7 +82,7 @@ impl DemoRaymarchingSettings {
     }
 }
 
-impl Program for DemoRaymarchingProgram {
+impl Program for Pipeline {
     /// Create program.
     /// Assume the `render_pipeline` will be properly initialized.
     fn init(
@@ -98,13 +98,13 @@ impl Program for DemoRaymarchingProgram {
             _start_time: web_time::Instant::now(),
             last_update: web_time::Instant::now(),
             frame_rate: FrameRate::new(100),
-            settings: DemoRaymarchingSettings::new(surface_configuration),
+            settings: RaymarchingSettings::new(surface_configuration),
         })
     }
 
     /// Get program name.
     fn get_name() -> &'static str {
-        "Demo raymarching"
+        " raymarching"
     }
 
     /// Recreate render pass.
@@ -118,7 +118,7 @@ impl Program for DemoRaymarchingProgram {
         Ok(())
     }
 
-    // Resize owned textures if needed, nothing for the demo here.
+    // Resize owned textures if needed, nothing for the  here.
     fn resize(
         &mut self,
         surface_configuration: &wgpu::SurfaceConfiguration,
@@ -132,7 +132,7 @@ impl Program for DemoRaymarchingProgram {
     /// Update program before rendering.
     fn update(&mut self, queue: &wgpu::Queue) {
         // Set the edge count of the regular raymarching.
-        // This is not exposed in the ui on purpose to demonstrate the rust hot reload.
+        // This is not exposed in the ui on purpose to nstrate the rust hot reload.
 
         // update elapsed time, taking speed into consideration.
         let last_frame_duration = self.last_update.elapsed().as_secs_f32();
@@ -193,7 +193,7 @@ impl Program for DemoRaymarchingProgram {
     }
 }
 
-impl DemoRaymarchingProgram {
+impl Pipeline {
     /// Create render pipeline.
     /// In debug mode it will return a `ProgramError` if it failed compiling a shader
     /// In release/wasm, il will crash since wgpu does not return errors in such situations.
@@ -203,7 +203,7 @@ impl DemoRaymarchingProgram {
         adapter: &wgpu::Adapter,
         uniforms_bind_group_layout: &wgpu::BindGroupLayout,
     ) -> Result<wgpu::RenderPipeline, ProgramError> {
-        let shader = ShaderBuilder::create_module(device, "demo_raymarching/draw.wgsl")?;
+        let shader = ShaderBuilder::create_module(device, "demos/raymarching/draw.wgsl")?;
         // let shader = ShaderBuilder::create_module(device, "test_preprocessor/draw.wgsl")?; // uncomment to test preprocessor
 
         let swapchain_capabilities = surface.get_capabilities(adapter);
@@ -251,7 +251,7 @@ impl DemoRaymarchingProgram {
         let uniforms = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("Camera Buffer"),
             usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
-            size: DemoRaymarchingSettings::get_size(),
+            size: RaymarchingSettings::get_size(),
             mapped_at_creation: false,
         });
 

@@ -6,10 +6,7 @@
 mod current_input;
 pub mod winit_input_helper;
 
-mod demo_boids;
-mod demo_polygon;
-mod demo_raymarching;
-
+pub mod demo_pipelines;
 pub mod camera_control;
 mod frame_rate;
 pub mod mouse_input;
@@ -22,11 +19,10 @@ use crate::program::{Program, ProgramError};
 // Any type from libthat is used in the functions signatures in lib.rs should be re-exported here
 // and re-imported in hot_lib.rs.
 pub use crate::camera_control::CameraLookAt;
-
 /// Specify which program we want to run here.
-pub use crate::demo_polygon::DemoPolygonProgram as CurrentProgram;
-// pub use crate::demo_boids::DemoBoidsProgram as CurrentProgram;
-// pub use crate::demo_raymarching::DemoRaymarchingProgram as CurrentProgram;
+pub use demo_pipelines::polygon::Pipeline as CurrentProgram;
+// pub use demo_pipelines::boids::Pipeline as CurrentProgram;
+// pub use demo_pipelines::raymarching::Pipeline as CurrentProgram;
 
 /// Hot-reloading does not support generics, so we need to specialize
 /// the functions we want to call from the outside.

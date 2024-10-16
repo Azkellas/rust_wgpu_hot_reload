@@ -13,12 +13,12 @@ pub struct Pass {
     pub uniform_buf: wgpu::Buffer,
 }
 
-/// Settings for the `DemoProgram`
-/// `polygon_edge_count` is not exposed in ui on purpose for demo purposes
+/// Settings for the `Program`
+/// `polygon_edge_count` is not exposed in ui on purpose for  purposes
 /// change it in the code with hot-reload enable to see it working.
 #[repr(C)]
 #[derive(Clone, Copy, Debug, bytemuck::Pod, bytemuck::Zeroable)]
-pub struct DemoPolygonSettings {
+pub struct PolygonSettings {
     // elapsed take the speed into consideration
     elapsed: f32,
     /// polygon radius in window, between 0 and 1
@@ -29,7 +29,7 @@ pub struct DemoPolygonSettings {
     speed: f32, // exposed in ui
 }
 
-impl DemoPolygonSettings {
+impl PolygonSettings {
     pub fn new() -> Self {
         Self {
             elapsed: 0.0,
@@ -43,20 +43,20 @@ impl DemoPolygonSettings {
         std::mem::size_of::<Self>() as _
     }
 }
-/// Demo Program rotation a regular polygon showcasing the three type of live updates
+///  Program rotation a regular polygon showcasing the three type of live updates
 ///     shader: `draw.wgsl`
-///     rust: `polygon_edge_count` in `DemoProgram::update`
+///     rust: `polygon_edge_count` in `Program::update`
 ///     ui: `size` and `speed`
 #[derive(Debug)]
-pub struct DemoPolygonProgram {
+pub struct Pipeline {
     render_pass: Pass,
     _start_time: web_time::Instant, // std::time::Instant is not compatible with wasm
     last_update: web_time::Instant,
-    settings: DemoPolygonSettings,
+    settings: PolygonSettings,
     frame_rate: FrameRate,
 }
 
-impl Program for DemoPolygonProgram {
+impl Program for Pipeline {
     /// Create program.
     /// Assume the `render_pipeline` will be properly initialized.
     fn init(
@@ -71,14 +71,14 @@ impl Program for DemoPolygonProgram {
             render_pass,
             _start_time: web_time::Instant::now(),
             last_update: web_time::Instant::now(),
-            settings: DemoPolygonSettings::new(),
+            settings: PolygonSettings::new(),
             frame_rate: FrameRate::default(),
         })
     }
 
     /// Get program name.
     fn get_name() -> &'static str {
-        "Demo polygon"
+        " polygon"
     }
 
     /// Recreate render pass.
@@ -92,7 +92,7 @@ impl Program for DemoPolygonProgram {
         Ok(())
     }
 
-    // Resize owned textures if needed, nothing for the demo here.
+    // Resize owned textures if needed, nothing for the  here.
     fn resize(
         &mut self,
         _surface_configuration: &wgpu::SurfaceConfiguration,
@@ -104,7 +104,7 @@ impl Program for DemoPolygonProgram {
     /// Update program before rendering.
     fn update(&mut self, queue: &wgpu::Queue) {
         // Set the edge count of the regular polygon.
-        // This is not exposed in the ui on purpose to demonstrate the rust hot reload.
+        // This is not exposed in the ui on purpose to nstrate the rust hot reload.
         self.settings.polygon_edge_count = 7;
 
         // update elapsed time, taking speed into consideration.
@@ -162,14 +162,14 @@ impl Program for DemoPolygonProgram {
         ui.add(egui::Slider::new(&mut self.settings.speed, 0.0..=20.0).text("speed"));
         ui.separator();
         ui.label(std::format!(
-            "edge count: {} (rust only for demo purposes)",
+            "edge count: {} (rust only for  purposes)",
             self.settings.polygon_edge_count
         ));
         ui.label(std::format!("framerate: {:.0}fps", self.frame_rate.get()));
     }
 }
 
-impl DemoPolygonProgram {
+impl Pipeline {
     /// Create render pipeline.
     /// In debug mode it will return a `ProgramError` if it failed compiling a shader
     /// In release/wasm, il will crash since wgpu does not return errors in such situations.
@@ -179,7 +179,7 @@ impl DemoPolygonProgram {
         adapter: &wgpu::Adapter,
         uniforms_bind_group_layout: &wgpu::BindGroupLayout,
     ) -> Result<wgpu::RenderPipeline, ProgramError> {
-        let shader = ShaderBuilder::create_module(device, "demo_polygon/draw.wgsl")?;
+        let shader = ShaderBuilder::create_module(device, "demos/polygon/draw.wgsl")?;
         // let shader = ShaderBuilder::create_module(device, "test_preprocessor/draw.wgsl")?; // uncomment to test preprocessor
 
         let swapchain_capabilities = surface.get_capabilities(adapter);
@@ -226,7 +226,7 @@ impl DemoPolygonProgram {
         // create uniform buffer.
         let uniforms = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("Uniforms Buffer"),
-            size: DemoPolygonSettings::get_size(),
+            size: PolygonSettings::get_size(),
             usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
             mapped_at_creation: false,
         });
