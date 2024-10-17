@@ -8,7 +8,7 @@ use nanorand::{Rng, WyRand};
 use wgpu::util::DeviceExt;
 
 use crate::frame_rate::FrameRate;
-use crate::program::{Program, ProgramError};
+use crate::program::{PipelineFuncs, PipelineError};
 use crate::shader_builder::ShaderBuilder;
 
 const NUM_PARTICLES: u32 = 1500;
@@ -69,7 +69,7 @@ pub struct Pipeline {
     last_update: web_time::Instant,
 }
 
-impl Program for Pipeline {
+impl PipelineFuncs for Pipeline {
     fn required_downlevel_capabilities() -> wgpu::DownlevelCapabilities {
         wgpu::DownlevelCapabilities {
             flags: wgpu::DownlevelFlags::COMPUTE_SHADERS,
@@ -93,7 +93,7 @@ impl Program for Pipeline {
         device: &wgpu::Device,
         adapter: &wgpu::Adapter,
         _surface_configuration: &wgpu::SurfaceConfiguration,
-    ) -> Result<Self, ProgramError> {
+    ) -> Result<Self, PipelineError> {
         let settings = BoidsSettings::new();
 
         let (compute_pass, render_pass) = Self::create_passes(surface, device, adapter)?;
@@ -113,7 +113,7 @@ impl Program for Pipeline {
         surface: &wgpu::Surface,
         device: &wgpu::Device,
         adapter: &wgpu::Adapter,
-    ) -> Result<(), ProgramError> {
+    ) -> Result<(), PipelineError> {
         self.compute_pass.compute_pipeline =
             Self::create_compute_pipeline(device, &self.compute_pass.bind_group_layout)?;
         self.render_pass.render_pipeline = Self::create_render_pipeline(surface, device, adapter)?;
@@ -243,7 +243,7 @@ impl Pipeline {
     fn create_compute_pipeline(
         device: &wgpu::Device,
         compute_bind_group_layout: &wgpu::BindGroupLayout,
-    ) -> Result<wgpu::ComputePipeline, ProgramError> {
+    ) -> Result<wgpu::ComputePipeline, PipelineError> {
         let compute_shader = ShaderBuilder::create_module(device, "demos/boids/compute.wgsl")?;
 
         let compute_pipeline_layout =
@@ -269,7 +269,7 @@ impl Pipeline {
         surface: &wgpu::Surface,
         device: &wgpu::Device,
         adapter: &wgpu::Adapter,
-    ) -> Result<wgpu::RenderPipeline, ProgramError> {
+    ) -> Result<wgpu::RenderPipeline, PipelineError> {
         let draw_shader = ShaderBuilder::create_module(device, "demos/boids/draw.wgsl")?;
 
         let swapchain_capabilities = surface.get_capabilities(adapter);
@@ -322,7 +322,7 @@ impl Pipeline {
         surface: &wgpu::Surface,
         device: &wgpu::Device,
         adapter: &wgpu::Adapter,
-    ) -> Result<(ComputePass, RenderPass), ProgramError> {
+    ) -> Result<(ComputePass, RenderPass), PipelineError> {
         let sim_param_buffer = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("Simulation Parameter Buffer"),
             usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,

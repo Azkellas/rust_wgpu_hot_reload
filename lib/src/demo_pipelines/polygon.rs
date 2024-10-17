@@ -1,5 +1,5 @@
 use crate::frame_rate::FrameRate;
-use crate::program::{Program, ProgramError};
+use crate::program::{PipelineFuncs, PipelineError};
 use crate::shader_builder::ShaderBuilder;
 
 /// A simple struct to store a wgpu pass with a uniform buffer.
@@ -13,7 +13,7 @@ pub struct Pass {
     pub uniform_buf: wgpu::Buffer,
 }
 
-/// Settings for the `Program`
+/// Settings for the `PipelineFuncs`
 /// `polygon_edge_count` is not exposed in ui on purpose for  purposes
 /// change it in the code with hot-reload enable to see it working.
 #[repr(C)]
@@ -43,9 +43,10 @@ impl PolygonSettings {
         std::mem::size_of::<Self>() as _
     }
 }
-///  Program rotation a regular polygon showcasing the three type of live updates
+///  Pipeline showcasing the three type of live updates via the rotation of a regular polygon 
+/// 
 ///     shader: `draw.wgsl`
-///     rust: `polygon_edge_count` in `Program::update`
+///     rust: `polygon_edge_count` in [`PipelineFuncs::update`]
 ///     ui: `size` and `speed`
 #[derive(Debug)]
 pub struct Pipeline {
@@ -56,7 +57,7 @@ pub struct Pipeline {
     frame_rate: FrameRate,
 }
 
-impl Program for Pipeline {
+impl PipelineFuncs for Pipeline {
     /// Create program.
     /// Assume the `render_pipeline` will be properly initialized.
     fn init(
@@ -64,7 +65,7 @@ impl Program for Pipeline {
         device: &wgpu::Device,
         adapter: &wgpu::Adapter,
         _surface_configuration: &wgpu::SurfaceConfiguration,
-    ) -> Result<Self, ProgramError> {
+    ) -> Result<Self, PipelineError> {
         let render_pass = Self::create_render_pass(surface, device, adapter)?;
 
         Ok(Self {
@@ -87,7 +88,7 @@ impl Program for Pipeline {
         surface: &wgpu::Surface,
         device: &wgpu::Device,
         adapter: &wgpu::Adapter,
-    ) -> Result<(), ProgramError> {
+    ) -> Result<(), PipelineError> {
         self.render_pass = Self::create_render_pass(surface, device, adapter)?;
         Ok(())
     }
@@ -171,14 +172,14 @@ impl Program for Pipeline {
 
 impl Pipeline {
     /// Create render pipeline.
-    /// In debug mode it will return a `ProgramError` if it failed compiling a shader
+    /// In debug mode it will return a `PipelineError` if it failed compiling a shader
     /// In release/wasm, il will crash since wgpu does not return errors in such situations.
     fn create_render_pipeline(
         surface: &wgpu::Surface,
         device: &wgpu::Device,
         adapter: &wgpu::Adapter,
         uniforms_bind_group_layout: &wgpu::BindGroupLayout,
-    ) -> Result<wgpu::RenderPipeline, ProgramError> {
+    ) -> Result<wgpu::RenderPipeline, PipelineError> {
         let shader = ShaderBuilder::create_module(device, "demos/polygon/draw.wgsl")?;
         // let shader = ShaderBuilder::create_module(device, "test_preprocessor/draw.wgsl")?; // uncomment to test preprocessor
 
@@ -222,7 +223,7 @@ impl Pipeline {
         surface: &wgpu::Surface,
         device: &wgpu::Device,
         adapter: &wgpu::Adapter,
-    ) -> Result<Pass, ProgramError> {
+    ) -> Result<Pass, PipelineError> {
         // create uniform buffer.
         let uniforms = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("Uniforms Buffer"),

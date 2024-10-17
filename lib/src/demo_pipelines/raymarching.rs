@@ -2,7 +2,7 @@ use wgpu::util::DeviceExt;
 
 use crate::camera_control::CameraLookAt;
 use crate::frame_rate::FrameRate;
-use crate::program::{Program, ProgramError};
+use crate::program::{PipelineFuncs, PipelineError};
 use crate::shader_builder::ShaderBuilder;
 
 /// A simple struct to store a wgpu pass with a uniform buffer.
@@ -82,7 +82,7 @@ impl RaymarchingSettings {
     }
 }
 
-impl Program for Pipeline {
+impl PipelineFuncs for Pipeline {
     /// Create program.
     /// Assume the `render_pipeline` will be properly initialized.
     fn init(
@@ -90,7 +90,7 @@ impl Program for Pipeline {
         device: &wgpu::Device,
         adapter: &wgpu::Adapter,
         surface_configuration: &wgpu::SurfaceConfiguration,
-    ) -> Result<Self, ProgramError> {
+    ) -> Result<Self, PipelineError> {
         let render_pass = Self::create_render_pass(surface, device, adapter)?;
 
         Ok(Self {
@@ -113,7 +113,7 @@ impl Program for Pipeline {
         surface: &wgpu::Surface,
         device: &wgpu::Device,
         adapter: &wgpu::Adapter,
-    ) -> Result<(), ProgramError> {
+    ) -> Result<(), PipelineError> {
         self.render_pass = Self::create_render_pass(surface, device, adapter)?;
         Ok(())
     }
@@ -195,14 +195,14 @@ impl Program for Pipeline {
 
 impl Pipeline {
     /// Create render pipeline.
-    /// In debug mode it will return a `ProgramError` if it failed compiling a shader
+    /// In debug mode it will return a `PipelineError` if it failed compiling a shader
     /// In release/wasm, il will crash since wgpu does not return errors in such situations.
     fn create_render_pipeline(
         surface: &wgpu::Surface,
         device: &wgpu::Device,
         adapter: &wgpu::Adapter,
         uniforms_bind_group_layout: &wgpu::BindGroupLayout,
-    ) -> Result<wgpu::RenderPipeline, ProgramError> {
+    ) -> Result<wgpu::RenderPipeline, PipelineError> {
         let shader = ShaderBuilder::create_module(device, "demos/raymarching/draw.wgsl")?;
         // let shader = ShaderBuilder::create_module(device, "test_preprocessor/draw.wgsl")?; // uncomment to test preprocessor
 
@@ -246,7 +246,7 @@ impl Pipeline {
         surface: &wgpu::Surface,
         device: &wgpu::Device,
         adapter: &wgpu::Adapter,
-    ) -> Result<Pass, ProgramError> {
+    ) -> Result<Pass, PipelineError> {
         // create uniform buffer.
         let uniforms = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("Camera Buffer"),
