@@ -2,7 +2,7 @@ use wgpu::util::DeviceExt;
 
 use crate::camera_control::CameraLookAt;
 use crate::frame_rate::FrameRate;
-use crate::program::{PipelineFuncs, PipelineError};
+use crate::program::{PipelineError, PipelineFuncs};
 use crate::shader_builder::ShaderBuilder;
 
 /// A simple struct to store a wgpu pass with a uniform buffer.

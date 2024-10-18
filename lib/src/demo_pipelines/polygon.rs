@@ -1,5 +1,5 @@
 use crate::frame_rate::FrameRate;
-use crate::program::{PipelineFuncs, PipelineError};
+use crate::program::{PipelineError, PipelineFuncs};
 use crate::shader_builder::ShaderBuilder;
 
 /// A simple struct to store a wgpu pass with a uniform buffer.
@@ -43,8 +43,8 @@ impl PolygonSettings {
         std::mem::size_of::<Self>() as _
     }
 }
-///  Pipeline showcasing the three type of live updates via the rotation of a regular polygon 
-/// 
+///  Pipeline showcasing the three type of live updates via the rotation of a regular polygon
+///
 ///     shader: `draw.wgsl`
 ///     rust: `polygon_edge_count` in [`PipelineFuncs::update`]
 ///     ui: `size` and `speed`

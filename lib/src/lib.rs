@@ -14,7 +14,7 @@ pub mod program;
 pub mod reload_flags;
 mod shader_builder;
 
-use crate::program::{PipelineFuncs, PipelineError};
+use crate::program::{PipelineError, PipelineFuncs};
 
 // Any type from libthat is used in the functions signatures in lib.rs should be re-exported here
 // and re-imported in hot_lib.rs.
