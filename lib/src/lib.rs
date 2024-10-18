@@ -16,11 +16,15 @@ mod shader_builder;
 
 use crate::program::{PipelineError, PipelineFuncs};
 
+/// default shader builder for this library's shaders.
+pub type ShaderBuilderForLibrary = ShaderBuilderFor<LibraryShaders>;
+
 // Any type from libthat is used in the functions signatures in lib.rs should be re-exported here
 // and re-imported in hot_lib.rs.
 pub use crate::camera_control::CameraLookAt;
 /// Specify which program we want to run here.
 pub use demo_pipelines::polygon::Pipeline as CurrentPipeline;
+use shader_builder::{LibraryShaders, ShaderBuilderFor};
 // pub use demo_pipelines::boids::Pipeline as CurrentPipeline;
 // pub use demo_pipelines::raymarching::Pipeline as CurrentPipeline;
 

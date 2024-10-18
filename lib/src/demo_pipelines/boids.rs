@@ -9,7 +9,7 @@ use wgpu::util::DeviceExt;
 
 use crate::frame_rate::FrameRate;
 use crate::program::{PipelineError, PipelineFuncs};
-use crate::shader_builder::ShaderBuilder;
+use crate::ShaderBuilderForLibrary;
 
 const NUM_PARTICLES: u32 = 1500;
 const PARTICLES_PER_GROUP: u32 = 64;
@@ -244,7 +244,8 @@ impl Pipeline {
         device: &wgpu::Device,
         compute_bind_group_layout: &wgpu::BindGroupLayout,
     ) -> Result<wgpu::ComputePipeline, PipelineError> {
-        let compute_shader = ShaderBuilder::create_module(device, "demos/boids/compute.wgsl")?;
+        let compute_shader =
+            ShaderBuilderForLibrary::create_module(device, "demos/boids/compute.wgsl")?;
 
         let compute_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
@@ -270,7 +271,7 @@ impl Pipeline {
         device: &wgpu::Device,
         adapter: &wgpu::Adapter,
     ) -> Result<wgpu::RenderPipeline, PipelineError> {
-        let draw_shader = ShaderBuilder::create_module(device, "demos/boids/draw.wgsl")?;
+        let draw_shader = ShaderBuilderForLibrary::create_module(device, "demos/boids/draw.wgsl")?;
 
         let swapchain_capabilities = surface.get_capabilities(adapter);
         let swapchain_format = swapchain_capabilities.formats[0];

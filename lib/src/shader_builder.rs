@@ -4,19 +4,24 @@ use std::borrow::Cow;
 
 use crate::program::PipelineError;
 
+/// Shaders used by this library for demo.
+#[derive(RustEmbed)]
+#[folder = "../shaders"]
+pub struct LibraryShaders;
+
 /// Shader helpers
 /// Will load from file in native debug mode to allow reloading at runtime
 /// and embed in binary in wasm/release mode.
-#[derive(RustEmbed)]
-#[folder = "../shaders/"]
-pub struct ShaderBuilder;
+// #[derive(RustEmbed)]
+// #[folder = "../shaders/"]
+pub struct ShaderBuilderFor<T>(pub T);
 
-impl ShaderBuilder {
+impl<T: RustEmbed> ShaderBuilderFor<T> {
     /// Load a shader file.
     /// Does not do any pre-processing here, but returns the raw content.
     pub fn load(name: &str) -> Result<String, PipelineError> {
         // read file.
-        Self::get(name)
+        T::get(name)
             // convert to PipelineError if file not found.
             .ok_or(PipelineError::ShaderNotFound(format!(
                 "Could not load shader file: {name}"
@@ -42,7 +47,7 @@ impl ShaderBuilder {
         device: &wgpu::Device,
         name: &str,
     ) -> Result<wgpu::ShaderModule, PipelineError> {
-        let shader = ShaderBuilder::build(name)?;
+        let shader = ShaderBuilderFor::<T>::build(name)?;
 
         // device.create_shader_module panics if the shader is malformed
         // only check this on native debug builds.
@@ -112,7 +117,7 @@ mod tests {
     #[ignore] // this test require a gpu, ignored by default since it is slow and github actions do not provide a gpu.
     fn test_shader_builder() -> Result<(), PipelineError> {
         // build shader.
-        let shader = ShaderBuilder::build("test_preprocessor/draw.wgsl")?;
+        let shader = ShaderBuilderFor::<LibraryShaders>::build("test_preprocessor/draw.wgsl")?;
 
         // make sure it has everything required.
         assert!(shader.contains("@vertex"));

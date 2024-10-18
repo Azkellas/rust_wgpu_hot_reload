@@ -1,6 +1,6 @@
 use crate::frame_rate::FrameRate;
 use crate::program::{PipelineError, PipelineFuncs};
-use crate::shader_builder::ShaderBuilder;
+use crate::ShaderBuilderForLibrary;
 
 /// A simple struct to store a wgpu pass with a uniform buffer.
 #[derive(Debug)]
@@ -180,7 +180,7 @@ impl Pipeline {
         adapter: &wgpu::Adapter,
         uniforms_bind_group_layout: &wgpu::BindGroupLayout,
     ) -> Result<wgpu::RenderPipeline, PipelineError> {
-        let shader = ShaderBuilder::create_module(device, "demos/polygon/draw.wgsl")?;
+        let shader = ShaderBuilderForLibrary::create_module(device, "demos/polygon/draw.wgsl")?;
         // let shader = ShaderBuilder::create_module(device, "test_preprocessor/draw.wgsl")?; // uncomment to test preprocessor
 
         let swapchain_capabilities = surface.get_capabilities(adapter);
