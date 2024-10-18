@@ -66,7 +66,7 @@ This syntax follows the bevy preprocessor syntax, which is roughly supported by 
 
 ### Using the template
 
-The project comes with a `Program` trait. Hopefully it should be enough for your needs. You just need to replace the current implementation with yours in `lib/lib.rs`: `pub use crate::demo::DemoProgram as CurrentProgram;`.
+The project comes with a `PipelineFuncs` trait. Hopefully it should be enough for your needs. You just need to replace the current implementation with yours in `lib/lib.rs`: `demo_pipelines::demo::Pipeline as CurrentPipeline;`.
 
 
 ---
@@ -83,7 +83,7 @@ Note that they cannot be generic. Example:
 
 ```rust
 #[no_mangle]
-pub fn get_program_name(program: &CurrentProgram) -> String {
+pub fn get_program_name(program: &CurrentPipeline) -> String {
     program.get_name().to_owned()
 }
 ```

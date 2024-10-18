@@ -2,8 +2,8 @@ use wgpu::util::DeviceExt;
 
 use crate::camera_control::CameraLookAt;
 use crate::frame_rate::FrameRate;
-use crate::program::{Program, ProgramError};
-use crate::shader_builder::ShaderBuilder;
+use crate::program::{PipelineError, PipelineFuncs};
+use crate::ShaderBuilderForLibrary;
 
 /// A simple struct to store a wgpu pass with a uniform buffer.
 #[derive(Debug)]
@@ -45,26 +45,26 @@ impl Vertex {
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
-pub struct DemoRaymarchingSettings {
+pub struct RaymarchingSettings {
     pub camera: CameraLookAt,
     pub size: [f32; 2],
     pub elapsed: f32,   // elapsed take the speed into consideration
     _padding: [f32; 2], // padding for alignment
 }
 
-/// Demo raymarching program.
+///  raymarching program.
 /// Everything is done in the shader.
 /// Provides both 2d and 3d raymarching.
 #[derive(Debug)]
-pub struct DemoRaymarchingProgram {
+pub struct Pipeline {
     render_pass: Pass,
     _start_time: web_time::Instant, // std::time::Instant is not compatible with wasm
     last_update: web_time::Instant,
     frame_rate: FrameRate,
-    settings: DemoRaymarchingSettings,
+    settings: RaymarchingSettings,
 }
 
-impl DemoRaymarchingSettings {
+impl RaymarchingSettings {
     pub fn new(surface_configuration: &wgpu::SurfaceConfiguration) -> Self {
         Self {
             camera: CameraLookAt::default(),
@@ -82,7 +82,7 @@ impl DemoRaymarchingSettings {
     }
 }
 
-impl Program for DemoRaymarchingProgram {
+impl PipelineFuncs for Pipeline {
     /// Create program.
     /// Assume the `render_pipeline` will be properly initialized.
     fn init(
@@ -90,7 +90,7 @@ impl Program for DemoRaymarchingProgram {
         device: &wgpu::Device,
         adapter: &wgpu::Adapter,
         surface_configuration: &wgpu::SurfaceConfiguration,
-    ) -> Result<Self, ProgramError> {
+    ) -> Result<Self, PipelineError> {
         let render_pass = Self::create_render_pass(surface, device, adapter)?;
 
         Ok(Self {
@@ -98,13 +98,13 @@ impl Program for DemoRaymarchingProgram {
             _start_time: web_time::Instant::now(),
             last_update: web_time::Instant::now(),
             frame_rate: FrameRate::new(100),
-            settings: DemoRaymarchingSettings::new(surface_configuration),
+            settings: RaymarchingSettings::new(surface_configuration),
         })
     }
 
     /// Get program name.
     fn get_name() -> &'static str {
-        "Demo raymarching"
+        "demo raymarching"
     }
 
     /// Recreate render pass.
@@ -113,7 +113,7 @@ impl Program for DemoRaymarchingProgram {
         surface: &wgpu::Surface,
         device: &wgpu::Device,
         adapter: &wgpu::Adapter,
-    ) -> Result<(), ProgramError> {
+    ) -> Result<(), PipelineError> {
         self.render_pass = Self::create_render_pass(surface, device, adapter)?;
         Ok(())
     }
@@ -193,17 +193,17 @@ impl Program for DemoRaymarchingProgram {
     }
 }
 
-impl DemoRaymarchingProgram {
+impl Pipeline {
     /// Create render pipeline.
-    /// In debug mode it will return a `ProgramError` if it failed compiling a shader
+    /// In debug mode it will return a `PipelineError` if it failed compiling a shader
     /// In release/wasm, il will crash since wgpu does not return errors in such situations.
     fn create_render_pipeline(
         surface: &wgpu::Surface,
         device: &wgpu::Device,
         adapter: &wgpu::Adapter,
         uniforms_bind_group_layout: &wgpu::BindGroupLayout,
-    ) -> Result<wgpu::RenderPipeline, ProgramError> {
-        let shader = ShaderBuilder::create_module(device, "demo_raymarching/draw.wgsl")?;
+    ) -> Result<wgpu::RenderPipeline, PipelineError> {
+        let shader = ShaderBuilderForLibrary::create_module(device, "demos/raymarching/draw.wgsl")?;
         // let shader = ShaderBuilder::create_module(device, "test_preprocessor/draw.wgsl")?; // uncomment to test preprocessor
 
         let swapchain_capabilities = surface.get_capabilities(adapter);
@@ -234,6 +234,7 @@ impl DemoRaymarchingProgram {
             depth_stencil: None,
             multisample: wgpu::MultisampleState::default(),
             multiview: None,
+            cache: None,
         });
 
         Ok(pipeline)
@@ -245,12 +246,12 @@ impl DemoRaymarchingProgram {
         surface: &wgpu::Surface,
         device: &wgpu::Device,
         adapter: &wgpu::Adapter,
-    ) -> Result<Pass, ProgramError> {
+    ) -> Result<Pass, PipelineError> {
         // create uniform buffer.
         let uniforms = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("Camera Buffer"),
             usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
-            size: DemoRaymarchingSettings::get_size(),
+            size: RaymarchingSettings::get_size(),
             mapped_at_creation: false,
         });
 

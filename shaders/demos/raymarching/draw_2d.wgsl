@@ -1,4 +1,4 @@
-#import "demo_raymarching/common.wgsl"
+#import "demos/raymarching/common.wgsl"
 
 
 fn sdf_circle(pos: vec2<f32>, origin: vec2<f32>, radius: f32) -> f32 {
