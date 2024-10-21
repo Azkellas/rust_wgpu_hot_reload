@@ -1,7 +1,7 @@
-#import "demo_raymarching/common.wgsl"
+#import "demos/raymarching/common.wgsl"
 
-#import "demo_raymarching/draw_2d.wgsl"
-#import "demo_raymarching/draw_3d.wgsl"
+#import "demos/raymarching/draw_2d.wgsl"
+#import "demos/raymarching/draw_3d.wgsl"
 
 @vertex
 fn vs_main(

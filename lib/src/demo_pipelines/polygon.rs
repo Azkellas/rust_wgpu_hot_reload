@@ -1,9 +1,6 @@
-use wgpu::util::DeviceExt;
-
-use crate::camera_control::CameraLookAt;
 use crate::frame_rate::FrameRate;
-use crate::program::{Program, ProgramError};
-use crate::shader_builder::ShaderBuilder;
+use crate::program::{PipelineError, PipelineFuncs};
+use crate::ShaderBuilderForLibrary;
 
 /// A simple struct to store a wgpu pass with a uniform buffer.
 #[derive(Debug)]
@@ -14,66 +11,31 @@ pub struct Pass {
     pub bind_group: wgpu::BindGroup,
     /// Single uniform buffer for this pass.
     pub uniform_buf: wgpu::Buffer,
-    // Index buffer.
-    pub index_buffer: wgpu::Buffer,
-    // Vertex buffer.
-    pub vertex_buffer: wgpu::Buffer,
-    //
-    pub index_count: u32,
 }
 
+/// Settings for the `PipelineFuncs`
+/// `polygon_edge_count` is not exposed in ui on purpose for  purposes
+/// change it in the code with hot-reload enable to see it working.
 #[repr(C)]
-#[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
-struct Vertex {
-    position: [f32; 3],
+#[derive(Clone, Copy, Debug, bytemuck::Pod, bytemuck::Zeroable)]
+pub struct PolygonSettings {
+    // elapsed take the speed into consideration
+    elapsed: f32,
+    /// polygon radius in window, between 0 and 1
+    polygon_size: f32, // exposed in ui
+    /// regular polygon edge count, expected to be 3 or more
+    polygon_edge_count: u32, // exposed in rust only
+    /// speed of the rotation
+    speed: f32, // exposed in ui
 }
 
-// lib.rs
-impl Vertex {
-    fn desc() -> wgpu::VertexBufferLayout<'static> {
-        wgpu::VertexBufferLayout {
-            array_stride: std::mem::size_of::<Vertex>() as wgpu::BufferAddress,
-            step_mode: wgpu::VertexStepMode::Vertex,
-            attributes: &[wgpu::VertexAttribute {
-                offset: 0,
-                shader_location: 0,
-                format: wgpu::VertexFormat::Float32x3,
-            }],
-        }
-    }
-}
-
-#[repr(C)]
-#[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
-pub struct DemoRaymarchingSettings {
-    pub camera: CameraLookAt,
-    pub size: [f32; 2],
-    pub elapsed: f32,   // elapsed take the speed into consideration
-    _padding: [f32; 2], // padding for alignment
-}
-
-/// Demo raymarching program.
-/// Everything is done in the shader.
-/// Provides both 2d and 3d raymarching.
-#[derive(Debug)]
-pub struct DemoRaymarchingProgram {
-    render_pass: Pass,
-    _start_time: web_time::Instant, // std::time::Instant is not compatible with wasm
-    last_update: web_time::Instant,
-    frame_rate: FrameRate,
-    settings: DemoRaymarchingSettings,
-}
-
-impl DemoRaymarchingSettings {
-    pub fn new(surface_configuration: &wgpu::SurfaceConfiguration) -> Self {
+impl PolygonSettings {
+    pub fn new() -> Self {
         Self {
-            camera: CameraLookAt::default(),
             elapsed: 0.0,
-            size: [
-                surface_configuration.width as f32,
-                surface_configuration.height as f32,
-            ],
-            _padding: [0.0; 2],
+            polygon_size: 0.5,
+            polygon_edge_count: 3,
+            speed: 1.0,
         }
     }
 
@@ -81,30 +43,43 @@ impl DemoRaymarchingSettings {
         std::mem::size_of::<Self>() as _
     }
 }
+///  Pipeline showcasing the three type of live updates via the rotation of a regular polygon
+///
+///     shader: `draw.wgsl`
+///     rust: `polygon_edge_count` in [`PipelineFuncs::update`]
+///     ui: `size` and `speed`
+#[derive(Debug)]
+pub struct Pipeline {
+    render_pass: Pass,
+    _start_time: web_time::Instant, // std::time::Instant is not compatible with wasm
+    last_update: web_time::Instant,
+    settings: PolygonSettings,
+    frame_rate: FrameRate,
+}
 
-impl Program for DemoRaymarchingProgram {
+impl PipelineFuncs for Pipeline {
     /// Create program.
     /// Assume the `render_pipeline` will be properly initialized.
     fn init(
         surface: &wgpu::Surface,
         device: &wgpu::Device,
         adapter: &wgpu::Adapter,
-        surface_configuration: &wgpu::SurfaceConfiguration,
-    ) -> Result<Self, ProgramError> {
+        _surface_configuration: &wgpu::SurfaceConfiguration,
+    ) -> Result<Self, PipelineError> {
         let render_pass = Self::create_render_pass(surface, device, adapter)?;
 
         Ok(Self {
             render_pass,
             _start_time: web_time::Instant::now(),
             last_update: web_time::Instant::now(),
-            frame_rate: FrameRate::new(100),
-            settings: DemoRaymarchingSettings::new(surface_configuration),
+            settings: PolygonSettings::new(),
+            frame_rate: FrameRate::default(),
         })
     }
 
     /// Get program name.
     fn get_name() -> &'static str {
-        "Demo raymarching"
+        "demo polygon"
     }
 
     /// Recreate render pass.
@@ -113,7 +88,7 @@ impl Program for DemoRaymarchingProgram {
         surface: &wgpu::Surface,
         device: &wgpu::Device,
         adapter: &wgpu::Adapter,
-    ) -> Result<(), ProgramError> {
+    ) -> Result<(), PipelineError> {
         self.render_pass = Self::create_render_pass(surface, device, adapter)?;
         Ok(())
     }
@@ -121,22 +96,21 @@ impl Program for DemoRaymarchingProgram {
     // Resize owned textures if needed, nothing for the demo here.
     fn resize(
         &mut self,
-        surface_configuration: &wgpu::SurfaceConfiguration,
+        _surface_configuration: &wgpu::SurfaceConfiguration,
         _device: &wgpu::Device,
         _queue: &wgpu::Queue,
     ) {
-        self.settings.size[0] = surface_configuration.width as f32;
-        self.settings.size[1] = surface_configuration.height as f32;
     }
 
     /// Update program before rendering.
     fn update(&mut self, queue: &wgpu::Queue) {
-        // Set the edge count of the regular raymarching.
+        // Set the edge count of the regular polygon.
         // This is not exposed in the ui on purpose to demonstrate the rust hot reload.
+        self.settings.polygon_edge_count = 7;
 
         // update elapsed time, taking speed into consideration.
         let last_frame_duration = self.last_update.elapsed().as_secs_f32();
-        self.settings.elapsed += last_frame_duration;
+        self.settings.elapsed += last_frame_duration * self.settings.speed;
         self.frame_rate.update(last_frame_duration);
         self.last_update = web_time::Instant::now();
         queue.write_buffer(
@@ -148,6 +122,11 @@ impl Program for DemoRaymarchingProgram {
 
     /// Render program.
     fn render(&self, view: &wgpu::TextureView, device: &wgpu::Device, queue: &wgpu::Queue) {
+        // We draw a regular polygon with n edges
+        // by drawing the n triangles starting from the center and with two adjacent vertices
+        // hence the * 3 vertex count, a square results in 4 triangles so 12 vertices to draw.
+        let vertex_count = self.settings.polygon_edge_count * 3;
+
         // Create a command encoder.
         let mut encoder =
             device.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
@@ -170,12 +149,7 @@ impl Program for DemoRaymarchingProgram {
             });
             render_pass.set_pipeline(&self.render_pass.pipeline);
             render_pass.set_bind_group(0, &self.render_pass.bind_group, &[]);
-            render_pass.set_vertex_buffer(0, self.render_pass.vertex_buffer.slice(..));
-            render_pass.set_index_buffer(
-                self.render_pass.index_buffer.slice(..),
-                wgpu::IndexFormat::Uint16,
-            ); // 1.
-            render_pass.draw_indexed(0..self.render_pass.index_count, 0, 0..1); // 2.
+            render_pass.draw(0..vertex_count, 0..1);
         }
 
         queue.submit(Some(encoder.finish()));
@@ -185,25 +159,28 @@ impl Program for DemoRaymarchingProgram {
     fn draw_ui(&mut self, ui: &mut egui::Ui) {
         ui.heading("Settings");
         ui.separator();
+        ui.add(egui::Slider::new(&mut self.settings.polygon_size, 0.0..=1.0).text("size"));
+        ui.add(egui::Slider::new(&mut self.settings.speed, 0.0..=20.0).text("speed"));
+        ui.separator();
+        ui.label(std::format!(
+            "edge count: {} (rust only for demo purposes)",
+            self.settings.polygon_edge_count
+        ));
         ui.label(std::format!("framerate: {:.0}fps", self.frame_rate.get()));
-    }
-
-    fn get_camera(&mut self) -> Option<&mut crate::camera_control::CameraLookAt> {
-        Some(&mut self.settings.camera)
     }
 }
 
-impl DemoRaymarchingProgram {
+impl Pipeline {
     /// Create render pipeline.
-    /// In debug mode it will return a `ProgramError` if it failed compiling a shader
+    /// In debug mode it will return a `PipelineError` if it failed compiling a shader
     /// In release/wasm, il will crash since wgpu does not return errors in such situations.
     fn create_render_pipeline(
         surface: &wgpu::Surface,
         device: &wgpu::Device,
         adapter: &wgpu::Adapter,
         uniforms_bind_group_layout: &wgpu::BindGroupLayout,
-    ) -> Result<wgpu::RenderPipeline, ProgramError> {
-        let shader = ShaderBuilder::create_module(device, "demo_raymarching/draw.wgsl")?;
+    ) -> Result<wgpu::RenderPipeline, PipelineError> {
+        let shader = ShaderBuilderForLibrary::create_module(device, "demos/polygon/draw.wgsl")?;
         // let shader = ShaderBuilder::create_module(device, "test_preprocessor/draw.wgsl")?; // uncomment to test preprocessor
 
         let swapchain_capabilities = surface.get_capabilities(adapter);
@@ -216,12 +193,12 @@ impl DemoRaymarchingProgram {
         });
 
         let pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-            label: Some("Raymarching Render Pipeline"),
+            label: None,
             layout: Some(&layout),
             vertex: wgpu::VertexState {
                 module: &shader,
                 entry_point: "vs_main",
-                buffers: &[Vertex::desc()],
+                buffers: &[],
                 compilation_options: wgpu::PipelineCompilationOptions::default(),
             },
             fragment: Some(wgpu::FragmentState {
@@ -246,12 +223,12 @@ impl DemoRaymarchingProgram {
         surface: &wgpu::Surface,
         device: &wgpu::Device,
         adapter: &wgpu::Adapter,
-    ) -> Result<Pass, ProgramError> {
+    ) -> Result<Pass, PipelineError> {
         // create uniform buffer.
         let uniforms = device.create_buffer(&wgpu::BufferDescriptor {
-            label: Some("Camera Buffer"),
+            label: Some("Uniforms Buffer"),
+            size: PolygonSettings::get_size(),
             usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
-            size: DemoRaymarchingSettings::get_size(),
             mapped_at_creation: false,
         });
 
@@ -259,7 +236,7 @@ impl DemoRaymarchingProgram {
             device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
                 entries: &[wgpu::BindGroupLayoutEntry {
                     binding: 0,
-                    visibility: wgpu::ShaderStages::FRAGMENT,
+                    visibility: wgpu::ShaderStages::VERTEX,
                     ty: wgpu::BindingType::Buffer {
                         ty: wgpu::BufferBindingType::Uniform,
                         has_dynamic_offset: false,
@@ -279,37 +256,6 @@ impl DemoRaymarchingProgram {
             label: Some("uniforms_bind_group"),
         });
 
-        // lib.rs
-        const VERTICES: &[Vertex] = &[
-            Vertex {
-                position: [-1.0, -1.0, 0.0],
-            },
-            Vertex {
-                position: [-1.0, 1.0, 0.0],
-            },
-            Vertex {
-                position: [1.0, 1.0, 0.0],
-            },
-            Vertex {
-                position: [1.0, -1.0, 0.0],
-            },
-        ];
-
-        let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("Vertex Buffer"),
-            contents: bytemuck::cast_slice(VERTICES),
-            usage: wgpu::BufferUsages::VERTEX,
-        });
-
-        const INDICES: &[u16] = &[1, 0, 2, 2, 0, 3];
-        let index_count = INDICES.len() as u32;
-
-        let index_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("Index Buffer"),
-            contents: bytemuck::cast_slice(INDICES),
-            usage: wgpu::BufferUsages::INDEX,
-        });
-
         let pipeline =
             Self::create_render_pipeline(surface, device, adapter, &uniforms_bind_group_layout)?;
 
@@ -317,9 +263,6 @@ impl DemoRaymarchingProgram {
             pipeline,
             bind_group: uniforms_bind_group,
             uniform_buf: uniforms,
-            index_buffer,
-            vertex_buffer,
-            index_count,
         })
     }
 }

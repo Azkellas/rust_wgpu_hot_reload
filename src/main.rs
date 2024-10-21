@@ -7,8 +7,8 @@
 //! running the main thread. Almost nothing should be done in this package.
 //!
 //! `lib` should contain all project-specific code.
-//! See `lib::program::Program` for the trait to implement
-//! and `lib::demo::DemoProgram` for an example.
+//! See [`lib::program::PipelineFuncs`] for the trait to implement
+//! and `lib::demo_pipelines::polygon` for an example.
 
 mod hot_lib;
 mod runner;
