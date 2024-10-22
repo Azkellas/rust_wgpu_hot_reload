@@ -52,7 +52,7 @@ pub struct RaymarchingSettings {
     _padding: [f32; 2], // padding for alignment
 }
 
-///  raymarching program.
+///  raymarching pipeline.
 /// Everything is done in the shader.
 /// Provides both 2d and 3d raymarching.
 #[derive(Debug)]
@@ -83,7 +83,7 @@ impl RaymarchingSettings {
 }
 
 impl PipelineFuncs for Pipeline {
-    /// Create program.
+    /// Create pipeline.
     /// Assume the `render_pipeline` will be properly initialized.
     fn init(
         surface: &wgpu::Surface,
@@ -102,7 +102,7 @@ impl PipelineFuncs for Pipeline {
         })
     }
 
-    /// Get program name.
+    /// Get pipeline name.
     fn get_name() -> &'static str {
         "demo raymarching"
     }
@@ -129,7 +129,7 @@ impl PipelineFuncs for Pipeline {
         self.settings.size[1] = surface_configuration.height as f32;
     }
 
-    /// Update program before rendering.
+    /// Update pipeline before rendering.
     fn update(&mut self, queue: &wgpu::Queue) {
         // Set the edge count of the regular raymarching.
         // This is not exposed in the ui on purpose to demonstrate the rust hot reload.
@@ -146,7 +146,7 @@ impl PipelineFuncs for Pipeline {
         );
     }
 
-    /// Render program.
+    /// Render pipeline.
     fn render(&self, view: &wgpu::TextureView, device: &wgpu::Device, queue: &wgpu::Queue) {
         // Create a command encoder.
         let mut encoder =

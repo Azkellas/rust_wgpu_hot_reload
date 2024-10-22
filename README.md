@@ -83,8 +83,8 @@ Note that they cannot be generic. Example:
 
 ```rust
 #[no_mangle]
-pub fn get_program_name(program: &CurrentPipeline) -> String {
-    program.get_name().to_owned()
+pub fn get_pipeline_name(pipeline: &CurrentPipeline) -> String {
+    pipeline.get_name().to_owned()
 }
 ```
 

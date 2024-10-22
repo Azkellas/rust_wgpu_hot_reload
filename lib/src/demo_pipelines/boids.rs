@@ -82,7 +82,7 @@ impl PipelineFuncs for Pipeline {
         wgpu::Limits::downlevel_defaults()
     }
 
-    /// Get program name.
+    /// Get pipeline name.
     fn get_name() -> &'static str {
         "demo boids"
     }

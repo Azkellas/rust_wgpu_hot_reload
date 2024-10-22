@@ -7,7 +7,7 @@
 //! running the main thread. Almost nothing should be done in this package.
 //!
 //! `lib` should contain all project-specific code.
-//! See [`lib::program::PipelineFuncs`] for the trait to implement
+//! See [`lib::pipeline::PipelineFuncs`] for the trait to implement
 //! and `lib::demo_pipelines::polygon` for an example.
 
 mod hot_lib;
@@ -26,7 +26,7 @@ use std::path::Path;
 
 /// Watch shader folder. Only done in native debug mode.
 /// Everytime a shader is modified/added/deleted,
-/// it will update the `ReloadFlags` so the program can reload them.
+/// it will update the `ReloadFlags` so the pipeline can reload them.
 #[cfg(all(debug_assertions, not(target_arch = "wasm32")))]
 fn watch<P: AsRef<Path>>(
     path: P,

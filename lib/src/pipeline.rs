@@ -37,7 +37,7 @@ impl fmt::Debug for PipelineError {
 ///
 /// All shader pipelines (ie specific projects) should implement this trait.
 pub trait PipelineFuncs: Sized {
-    /// Create program.
+    /// Create pipeline.
     ///
     /// # Errors
     /// - [`PipelineError::ShaderParseError`] when the shader could not be compiled.
@@ -48,7 +48,7 @@ pub trait PipelineFuncs: Sized {
         surface_configuration: &wgpu::SurfaceConfiguration,
     ) -> Result<Self, PipelineError>;
 
-    /// Get program name.
+    /// Get pipeline name.
     fn get_name() -> &'static str;
 
     /// Create render pipeline.
@@ -70,10 +70,10 @@ pub trait PipelineFuncs: Sized {
         queue: &wgpu::Queue,
     );
 
-    /// Update program before rendering.
+    /// Update pipeline before rendering.
     fn update(&mut self, queue: &wgpu::Queue);
 
-    /// Render program.
+    /// Render pipeline.
     fn render(&self, view: &wgpu::TextureView, device: &wgpu::Device, queue: &wgpu::Queue);
 
     /// Draw ui.

@@ -58,7 +58,7 @@ pub struct Pipeline {
 }
 
 impl PipelineFuncs for Pipeline {
-    /// Create program.
+    /// Create pipeline.
     /// Assume the `render_pipeline` will be properly initialized.
     fn init(
         surface: &wgpu::Surface,
@@ -77,7 +77,7 @@ impl PipelineFuncs for Pipeline {
         })
     }
 
-    /// Get program name.
+    /// Get pipeline name.
     fn get_name() -> &'static str {
         "demo polygon"
     }
@@ -102,7 +102,7 @@ impl PipelineFuncs for Pipeline {
     ) {
     }
 
-    /// Update program before rendering.
+    /// Update pipeline before rendering.
     fn update(&mut self, queue: &wgpu::Queue) {
         // Set the edge count of the regular polygon.
         // This is not exposed in the ui on purpose to demonstrate the rust hot reload.
@@ -120,7 +120,7 @@ impl PipelineFuncs for Pipeline {
         );
     }
 
-    /// Render program.
+    /// Render pipeline.
     fn render(&self, view: &wgpu::TextureView, device: &wgpu::Device, queue: &wgpu::Queue) {
         // We draw a regular polygon with n edges
         // by drawing the n triangles starting from the center and with two adjacent vertices

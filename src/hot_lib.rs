@@ -24,7 +24,7 @@ pub mod library_bridge {
 /// Library bridge when rust reload is disabled.
 #[cfg(not(feature = "reload"))]
 pub mod library_bridge {
-    // pub use lib::program::{PipelineFuncs, PipelineError};
+    // pub use lib::pipeline::{PipelineFuncs, PipelineError};
     pub use lib::reload_flags::{LibState, ReloadFlags};
     // pub use lib::CurrentPipeline;
 
