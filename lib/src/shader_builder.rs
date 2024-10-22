@@ -2,7 +2,7 @@ use rust_embed::RustEmbed;
 
 use std::borrow::Cow;
 
-use crate::program::PipelineError;
+use crate::pipeline::PipelineError;
 
 /// Shaders used by this library for demo.
 #[derive(RustEmbed)]

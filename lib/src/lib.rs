@@ -10,11 +10,11 @@ pub mod camera_control;
 pub mod demo_pipelines;
 mod frame_rate;
 pub mod mouse_input;
-pub mod program;
+pub mod pipeline;
 pub mod reload_flags;
 mod shader_builder;
 
-use crate::program::{PipelineError, PipelineFuncs};
+use crate::pipeline::{PipelineError, PipelineFuncs};
 
 /// default shader builder for this library's shaders.
 pub type ShaderBuilderForLibrary = ShaderBuilderFor<LibraryShaders>;

@@ -1,5 +1,5 @@
 use crate::frame_rate::FrameRate;
-use crate::program::{PipelineError, PipelineFuncs};
+use crate::pipeline::{PipelineError, PipelineFuncs};
 use crate::ShaderBuilderForLibrary;
 
 /// A simple struct to store a wgpu pass with a uniform buffer.

@@ -3,7 +3,7 @@
 #[hot_lib_reloader::hot_module(dylib = "lib")]
 pub mod library_bridge {
     // Any type that is used in the functions signatures in lib.rs should be imported here.
-    pub use lib::program::{PipelineError, PipelineFuncs};
+    pub use lib::pipeline::{PipelineError, PipelineFuncs};
     pub use lib::reload_flags::{LibState, ReloadFlags};
     use lib::winit_input_helper;
     pub use lib::CameraLookAt;

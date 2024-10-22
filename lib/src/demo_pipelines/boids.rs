@@ -8,7 +8,7 @@ use nanorand::{Rng, WyRand};
 use wgpu::util::DeviceExt;
 
 use crate::frame_rate::FrameRate;
-use crate::program::{PipelineError, PipelineFuncs};
+use crate::pipeline::{PipelineError, PipelineFuncs};
 use crate::ShaderBuilderForLibrary;
 
 const NUM_PARTICLES: u32 = 1500;
