@@ -1,4 +1,4 @@
-#import "demo_raymarching/camera.wgsl"
+#import "demos/raymarching/camera.wgsl"
 
 const EPSILON = 0.001;
 

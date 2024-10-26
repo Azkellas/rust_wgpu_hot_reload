@@ -3,11 +3,11 @@
 #[hot_lib_reloader::hot_module(dylib = "lib")]
 pub mod library_bridge {
     // Any type that is used in the functions signatures in lib.rs should be imported here.
-    pub use lib::program::{Program, ProgramError};
+    pub use lib::pipeline::{PipelineError, PipelineFuncs};
     pub use lib::reload_flags::{LibState, ReloadFlags};
     use lib::winit_input_helper;
     pub use lib::CameraLookAt;
-    pub use lib::CurrentProgram;
+    pub use lib::CurrentPipeline;
 
     // Specific hot reload helpers.
     hot_functions_from_file!("lib/src/lib.rs");
@@ -24,9 +24,9 @@ pub mod library_bridge {
 /// Library bridge when rust reload is disabled.
 #[cfg(not(feature = "reload"))]
 pub mod library_bridge {
-    // pub use lib::program::{Program, ProgramError};
+    // pub use lib::pipeline::{PipelineFuncs, PipelineError};
     pub use lib::reload_flags::{LibState, ReloadFlags};
-    // pub use lib::CurrentProgram;
+    // pub use lib::CurrentPipeline;
 
     // Include lib file directly since it is not done via the hot-reload module.
     pub use lib::*;

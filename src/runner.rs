@@ -224,8 +224,8 @@ impl WgpuContext {
         let adapter_info = adapter.get_info();
         log::info!("Using {} ({:?})", adapter_info.name, adapter_info.backend);
 
-        let optional_features = library_bridge::program_optional_features();
-        let required_features = library_bridge::program_required_features();
+        let optional_features = library_bridge::pipeline_optional_features();
+        let required_features = library_bridge::pipeline_required_features();
         let adapter_features = adapter.features();
         assert!(
             adapter_features.contains(required_features),
@@ -234,7 +234,7 @@ impl WgpuContext {
         );
 
         let required_downlevel_capabilities =
-            library_bridge::program_required_downlevel_capabilities();
+            library_bridge::pipeline_required_downlevel_capabilities();
         let downlevel_capabilities = adapter.get_downlevel_capabilities();
         assert!(
             downlevel_capabilities.shader_model >= required_downlevel_capabilities.shader_model,
@@ -251,7 +251,7 @@ impl WgpuContext {
 
         // Make sure we use the texture resolution limits from the adapter, so we can support images the size of the surface.
         let needed_limits =
-            library_bridge::program_required_limits().using_resolution(adapter.limits());
+            library_bridge::pipeline_required_limits().using_resolution(adapter.limits());
 
         let trace_dir = std::env::var("WGPU_TRACE");
         let (device, queue) = adapter
@@ -282,7 +282,7 @@ async fn run(
     // window: Rc<Window>,
     data: Arc<Mutex<library_bridge::ReloadFlags>>,
 ) {
-    let window_loop = EventLoopWrapper::new(&library_bridge::get_program_name());
+    let window_loop = EventLoopWrapper::new(&library_bridge::get_pipeline_name());
     let mut surface = SurfaceWrapper::new();
     let context = WgpuContext::init_async(&mut surface, window_loop.window.clone()).await;
 
@@ -296,7 +296,7 @@ async fn run(
     }
 
     let mut input = WinitInputHelper::new();
-    let mut program = None;
+    let mut pipeline = None;
 
     // Create egui state.
     let mut egui_state = egui_winit::State::new(
@@ -343,14 +343,14 @@ async fn run(
                     // See: https://github.com/rust-windowing/winit/issues/208
                     // This solves an issue where the app would panic when minimizing on Windows.
 
-                    let Some(program) = &mut program else {
+                    let Some(pipeline) = &mut pipeline else {
                         return;
                     };
 
                     if new_size.width > 0 && new_size.height > 0 {
                         surface.resize(&context, *new_size);
-                        library_bridge::resize_program(
-                            program,
+                        library_bridge::resize_pipeline(
+                            pipeline,
                             surface.config.as_ref().unwrap(),
                             &context.device,
                             &context.queue,
@@ -362,9 +362,9 @@ async fn run(
             if SurfaceWrapper::start_condition(&event) {
                 surface.resume(&context, window_loop.window.clone(), true);
 
-                if program.is_none() {
-                    program = Some(
-                        library_bridge::create_program(
+                if pipeline.is_none() {
+                    pipeline = Some(
+                        library_bridge::create_pipeline(
                             surface.surface.as_ref().unwrap(),
                             &context.device,
                             &context.adapter,
@@ -374,7 +374,7 @@ async fn run(
                     );
 
                     if let Some(camera) =
-                        library_bridge::get_program_camera(program.as_mut().unwrap())
+                        library_bridge::get_pipeline_camera(pipeline.as_mut().unwrap())
                     {
                         let Some(config) = surface.config.as_mut() else {
                             return;
@@ -403,10 +403,10 @@ async fn run(
                     target.exit();
                 }
 
-                if let Some(program) = &mut program {
-                    library_bridge::process_input(program, &input);
+                if let Some(pipeline) = &mut pipeline {
+                    library_bridge::process_input(pipeline, &input);
 
-                    if let Some(camera) = library_bridge::get_program_camera(program) {
+                    if let Some(camera) = library_bridge::get_pipeline_camera(pipeline) {
                         let Some(config) = surface.config.as_mut() else {
                             return;
                         };
@@ -416,7 +416,7 @@ async fn run(
             }
 
             if redraw_requested {
-                let Some(program) = &mut program else {
+                let Some(pipeline) = &mut pipeline else {
                     return;
                 };
                 let Some(config) = surface.config.as_mut() else {
@@ -449,34 +449,34 @@ async fn run(
                 // Reload shaders if needed
                 if !data.shaders.is_empty() {
                     log::info!("rebuild shaders {:?}", data.shaders);
-                    if let Err(program_error) = library_bridge::update_program_passes(
-                        program,
+                    if let Err(pipeline_error) = library_bridge::update_pipeline_passes(
+                        pipeline,
                         surface,
                         &context.device,
                         &context.adapter,
                     ) {
-                        log::error!("{program_error:?}");
+                        log::error!("{pipeline_error:?}");
                     }
                     data.shaders.clear();
                 }
                 if data.lib == lib::reload_flags::LibState::Reloaded {
                     log::info!("reload lib");
-                    if let Err(program_error) = library_bridge::update_program_passes(
-                        program,
+                    if let Err(pipeline_error) = library_bridge::update_pipeline_passes(
+                        pipeline,
                         surface,
                         &context.device,
                         &context.adapter,
                     ) {
-                        log::error!("{program_error}");
+                        log::error!("{pipeline_error}");
                     }
                     data.lib = library_bridge::LibState::Stable;
                 }
                 if data.lib == library_bridge::LibState::Stable {
-                    // Update the program before drawing.
-                    library_bridge::update_program(program, &context.queue);
+                    // Update the pipeline before drawing.
+                    library_bridge::update_pipeline(pipeline, &context.queue);
 
-                    // Render the program first so the ui is on top.
-                    library_bridge::render_frame(program, &view, &context.device, &context.queue);
+                    // Render the pipeline first so the ui is on top.
+                    library_bridge::render_frame(pipeline, &view, &context.device, &context.queue);
 
                     // Update the ui before drawing.
                     let input = egui_state.take_egui_input(&window_loop.window);
@@ -484,10 +484,10 @@ async fn run(
                     let egui_context = egui_state.egui_ctx();
 
                     egui_context.begin_pass(input);
-                    egui::Window::new(library_bridge::get_program_name()).show(
+                    egui::Window::new(library_bridge::get_pipeline_name()).show(
                         egui_context,
                         |ui| {
-                            library_bridge::render_ui(program, ui);
+                            library_bridge::render_ui(pipeline, ui);
                         },
                     );
 

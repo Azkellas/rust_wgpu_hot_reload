@@ -6,128 +6,128 @@
 mod current_input;
 pub mod winit_input_helper;
 
-mod demo_boids;
-mod demo_polygon;
-mod demo_raymarching;
-
 pub mod camera_control;
+pub mod demo_pipelines;
 mod frame_rate;
 pub mod mouse_input;
-pub mod program;
+pub mod pipeline;
 pub mod reload_flags;
 mod shader_builder;
 
-use crate::program::{Program, ProgramError};
+use crate::pipeline::{PipelineError, PipelineFuncs};
+
+/// default shader builder for this library's shaders.
+pub type ShaderBuilderForLibrary = ShaderBuilderFor<LibraryShaders>;
 
 // Any type from libthat is used in the functions signatures in lib.rs should be re-exported here
 // and re-imported in hot_lib.rs.
 pub use crate::camera_control::CameraLookAt;
-
-/// Specify which program we want to run here.
-pub use crate::demo_polygon::DemoPolygonProgram as CurrentProgram;
-// pub use crate::demo_boids::DemoBoidsProgram as CurrentProgram;
-// pub use crate::demo_raymarching::DemoRaymarchingProgram as CurrentProgram;
+/// Specify which pipeline we want to run here.
+pub use demo_pipelines::polygon::Pipeline as CurrentPipeline;
+use shader_builder::{LibraryShaders, ShaderBuilderFor};
+// pub use demo_pipelines::boids::Pipeline as CurrentPipeline;
+// pub use demo_pipelines::raymarching::Pipeline as CurrentPipeline;
 
 /// Hot-reloading does not support generics, so we need to specialize
 /// the functions we want to call from the outside.
 ///
 /// # Errors
-/// - `ProgramError::ShaderParseError` when the shader could not be compiled.
+/// - `PipelineError::ShaderParseError` when the shader could not be compiled.
 #[no_mangle]
-pub fn create_program(
+pub fn create_pipeline(
     surface: &wgpu::Surface,
     device: &wgpu::Device,
     adapter: &wgpu::Adapter,
     surface_configuration: &wgpu::SurfaceConfiguration,
-) -> Result<CurrentProgram, ProgramError> {
-    CurrentProgram::init(surface, device, adapter, surface_configuration)
+) -> Result<CurrentPipeline, PipelineError> {
+    CurrentPipeline::init(surface, device, adapter, surface_configuration)
 }
 
-/// Contrary to `Program::get_name`, this function returns a String
+/// Contrary to `PipelineFuncs::get_name`, this function returns a String
 /// and not a &'static str since we cannot return a static reference
 /// from a dynamic library.
 #[no_mangle]
-pub fn get_program_name() -> String {
-    CurrentProgram::get_name().to_owned()
+pub fn get_pipeline_name() -> String {
+    CurrentPipeline::get_name().to_owned()
 }
 
-/// Resize program. This is called when the main window was resized,
-/// to allow programs to update their textures and other data
+/// Resize pipeline. This is called when the main window was resized,
+/// to allow pipelines to update their textures and other data
 /// depending on the window size.
 #[no_mangle]
-pub fn resize_program(
-    program: &mut CurrentProgram,
+pub fn resize_pipeline(
+    pipeline: &mut CurrentPipeline,
     surface_configuration: &wgpu::SurfaceConfiguration,
     device: &wgpu::Device,
     queue: &wgpu::Queue,
 ) {
-    program.resize(surface_configuration, device, queue);
+    pipeline.resize(surface_configuration, device, queue);
 }
 
-/// Update program passes. Called when a shader needs to be reloaded
+/// Update pipeline passes. Called when a shader needs to be reloaded
 /// or the libray is done reloading,
 ///
 /// # Errors
-/// - `ProgramError::ShaderParseError` when the shader could not be compiled.
+/// - `PipelineError::ShaderParseError` when the shader could not be compiled.
 #[no_mangle]
-pub fn update_program_passes(
-    program: &mut CurrentProgram,
+pub fn update_pipeline_passes(
+    pipeline: &mut CurrentPipeline,
     surface: &wgpu::Surface,
     device: &wgpu::Device,
     adapter: &wgpu::Adapter,
-) -> Result<(), ProgramError> {
-    program.update_passes(surface, device, adapter)
+) -> Result<(), PipelineError> {
+    pipeline.update_passes(surface, device, adapter)
 }
 
-/// Update program. Called each frame before rendering.
+/// Update pipeline. Called each frame before rendering.
 #[no_mangle]
-pub fn update_program(program: &mut CurrentProgram, queue: &wgpu::Queue) {
-    program.update(queue);
+pub fn update_pipeline(pipeline: &mut CurrentPipeline, queue: &wgpu::Queue) {
+    pipeline.update(queue);
 }
 
 /// Render frame.
 #[no_mangle]
 pub fn render_frame(
-    program: &CurrentProgram,
+    pipeline: &CurrentPipeline,
     view: &wgpu::TextureView,
     device: &wgpu::Device,
     queue: &wgpu::Queue,
 ) {
-    program.render(view, device, queue);
+    pipeline.render(view, device, queue);
 }
 
 /// Render ui. Called after `render_frame` to ensure ui is on top.
 #[no_mangle]
-pub fn render_ui(program: &mut CurrentProgram, ui: &mut egui::Ui) {
-    program.draw_ui(ui);
+pub fn render_ui(pipeline: &mut CurrentPipeline, ui: &mut egui::Ui) {
+    pipeline.draw_ui(ui);
 }
 
 #[no_mangle]
-pub fn process_input(program: &mut CurrentProgram, input: &winit_input_helper::WinitInputHelper) {
-    program.process_input(input);
+pub fn process_input(pipeline: &mut CurrentPipeline, input: &winit_input_helper::WinitInputHelper) {
+    pipeline.process_input(input);
 }
 
 #[no_mangle]
-pub fn program_optional_features() -> wgpu::Features {
-    CurrentProgram::optional_features()
+pub fn pipeline_optional_features() -> wgpu::Features {
+    CurrentPipeline::optional_features()
 }
 
 #[no_mangle]
-pub fn program_required_features() -> wgpu::Features {
-    CurrentProgram::required_features()
+pub fn pipeline_required_features() -> wgpu::Features {
+    CurrentPipeline::required_features()
 }
 
 #[no_mangle]
-pub fn program_required_downlevel_capabilities() -> wgpu::DownlevelCapabilities {
-    CurrentProgram::required_downlevel_capabilities()
+pub fn pipeline_required_downlevel_capabilities() -> wgpu::DownlevelCapabilities {
+    CurrentPipeline::required_downlevel_capabilities()
 }
 
 #[no_mangle]
-pub fn program_required_limits() -> wgpu::Limits {
-    CurrentProgram::required_limits()
+pub fn pipeline_required_limits() -> wgpu::Limits {
+    CurrentPipeline::required_limits()
 }
 
 #[no_mangle]
-pub fn get_program_camera(program: &mut CurrentProgram) -> Option<&mut CameraLookAt> {
-    program.get_camera()
+pub fn get_pipeline_camera(pipeline: &mut CurrentPipeline) -> Option<&mut CameraLookAt> {
+    pipeline.get_camera()
 }

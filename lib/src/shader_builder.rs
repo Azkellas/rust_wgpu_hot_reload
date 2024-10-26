@@ -2,30 +2,35 @@ use rust_embed::RustEmbed;
 
 use std::borrow::Cow;
 
-use crate::program::ProgramError;
+use crate::pipeline::PipelineError;
+
+/// Shaders used by this library for demo.
+#[derive(RustEmbed)]
+#[folder = "../shaders"]
+pub struct LibraryShaders;
 
 /// Shader helpers
 /// Will load from file in native debug mode to allow reloading at runtime
 /// and embed in binary in wasm/release mode.
-#[derive(RustEmbed)]
-#[folder = "../shaders/"]
-pub struct ShaderBuilder;
+// #[derive(RustEmbed)]
+// #[folder = "../shaders/"]
+pub struct ShaderBuilderFor<T>(pub T);
 
-impl ShaderBuilder {
+impl<T: RustEmbed> ShaderBuilderFor<T> {
     /// Load a shader file.
     /// Does not do any pre-processing here, but returns the raw content.
-    pub fn load(name: &str) -> Result<String, ProgramError> {
+    pub fn load(name: &str) -> Result<String, PipelineError> {
         // read file.
-        Self::get(name)
-            // convert to ProgramError if file not found.
-            .ok_or(ProgramError::ShaderNotFound(format!(
+        T::get(name)
+            // convert to PipelineError if file not found.
+            .ok_or(PipelineError::ShaderNotFound(format!(
                 "Could not load shader file: {name}"
             )))
             // Try parsing to utf8.
             .and_then(|file| {
                 std::str::from_utf8(file.data.as_ref())
                     .map(str::to_owned)
-                    .or(Err(ProgramError::ShaderNotFound(format!(
+                    .or(Err(PipelineError::ShaderNotFound(format!(
                         "Shader file {name} is not a valid utf8."
                     ))))
             })
@@ -33,7 +38,7 @@ impl ShaderBuilder {
 
     /// Build a shader file by importing all its dependencies.
     /// todo: Add #ifdef #else #endif #ifndef support.
-    pub fn build(name: &str) -> Result<String, ProgramError> {
+    pub fn build(name: &str) -> Result<String, PipelineError> {
         Self::build_with_seen(name, &mut vec![])
     }
 
@@ -41,8 +46,8 @@ impl ShaderBuilder {
     pub fn create_module(
         device: &wgpu::Device,
         name: &str,
-    ) -> Result<wgpu::ShaderModule, ProgramError> {
-        let shader = ShaderBuilder::build(name)?;
+    ) -> Result<wgpu::ShaderModule, PipelineError> {
+        let shader = ShaderBuilderFor::<T>::build(name)?;
 
         // device.create_shader_module panics if the shader is malformed
         // only check this on native debug builds.
@@ -60,7 +65,7 @@ impl ShaderBuilder {
         if let Some(error) = pollster::block_on(device.pop_error_scope()) {
             log::error!("{name}: {}", error);
             // redundant, naga already logs the error.
-            return Err(ProgramError::ShaderParseError(format!("{error}")));
+            return Err(PipelineError::ShaderParseError(format!("{error}")));
         }
 
         Ok(module)
@@ -72,7 +77,7 @@ impl ShaderBuilder {
     /// so we don't need to sort the imports depending on their dependencies.
     /// However we cannot define the same symbol twice, so we need to make sure
     /// we do not import the same file twice.
-    fn build_with_seen(name: &str, seen: &mut Vec<String>) -> Result<String, ProgramError> {
+    fn build_with_seen(name: &str, seen: &mut Vec<String>) -> Result<String, PipelineError> {
         // File was already included, return empty string.
         let owned_name = name.to_owned();
         if seen.contains(&owned_name) {
@@ -99,7 +104,7 @@ impl ShaderBuilder {
                     Ok(line.to_owned() + "\n")
                 }
             })
-            .collect::<Result<String, ProgramError>>()
+            .collect::<Result<String, PipelineError>>()
     }
 }
 
@@ -110,9 +115,9 @@ mod tests {
 
     #[test]
     #[ignore] // this test require a gpu, ignored by default since it is slow and github actions do not provide a gpu.
-    fn test_shader_builder() -> Result<(), ProgramError> {
+    fn test_shader_builder() -> Result<(), PipelineError> {
         // build shader.
-        let shader = ShaderBuilder::build("test_preprocessor/draw.wgsl")?;
+        let shader = ShaderBuilderFor::<LibraryShaders>::build("test_preprocessor/draw.wgsl")?;
 
         // make sure it has everything required.
         assert!(shader.contains("@vertex"));

@@ -2,15 +2,15 @@ use std::fmt;
 
 use crate::winit_input_helper;
 
-/// Errors a program can return
-pub enum ProgramError {
+/// Errors a pipeline can return
+pub enum PipelineError {
     /// This encapsulate naga::front::wgsl::ParseError that is not available in wasm it seems.
     /// The output is the same minus the colors.
     ShaderParseError(String),
     ShaderNotFound(String),
 }
 
-impl fmt::Display for ProgramError {
+impl fmt::Display for PipelineError {
     /// Display error.
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
@@ -26,41 +26,41 @@ impl fmt::Display for ProgramError {
     }
 }
 
-impl fmt::Debug for ProgramError {
+impl fmt::Debug for PipelineError {
     /// Force Debug to be multilined like Display for the sake of clarity in shader files.
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt::Display::fmt(&self, f)
     }
 }
 
-/// Program trait.
+/// PipelineFuncs trait.
 ///
-/// All programs (ie specific projects) should implement this trait.
-pub trait Program: Sized {
-    /// Create program.
+/// All shader pipelines (ie specific projects) should implement this trait.
+pub trait PipelineFuncs: Sized {
+    /// Create pipeline.
     ///
     /// # Errors
-    /// - `ProgramError::ShaderParseError` when the shader could not be compiled.
+    /// - [`PipelineError::ShaderParseError`] when the shader could not be compiled.
     fn init(
         surface: &wgpu::Surface,
         device: &wgpu::Device,
         adapter: &wgpu::Adapter,
         surface_configuration: &wgpu::SurfaceConfiguration,
-    ) -> Result<Self, ProgramError>;
+    ) -> Result<Self, PipelineError>;
 
-    /// Get program name.
+    /// Get pipeline name.
     fn get_name() -> &'static str;
 
     /// Create render pipeline.
     ///
     /// # Errors
-    /// - `ProgramError::ShaderParseError` when the shader could not be compiled.
+    /// - `PipelineError::ShaderParseError` when the shader could not be compiled.
     fn update_passes(
         &mut self,
         surface: &wgpu::Surface,
         device: &wgpu::Device,
         adapter: &wgpu::Adapter,
-    ) -> Result<(), ProgramError>;
+    ) -> Result<(), PipelineError>;
 
     /// Resize output
     fn resize(
@@ -70,10 +70,10 @@ pub trait Program: Sized {
         queue: &wgpu::Queue,
     );
 
-    /// Update program before rendering.
+    /// Update pipeline before rendering.
     fn update(&mut self, queue: &wgpu::Queue);
 
-    /// Render program.
+    /// Render pipeline.
     fn render(&self, view: &wgpu::TextureView, device: &wgpu::Device, queue: &wgpu::Queue);
 
     /// Draw ui.
